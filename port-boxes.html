@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>صناديق الميناء</title>
+<style>
+:root{
+  --bg:#eef6fb; --ink:#13324a; --muted:#56718a; --card:#ffffff; --line:#cfe1ee;
+  --accent:#1f6fa8; --accent-dark:#164f7a; --accent-ink:#ffffff;
+  --ok:#1d7a3e; --ok-bg:#e2f4e7; --bad:#a3302a; --bad-bg:#fbe5e2; --hint-bg:#fff1d6; --hint-ink:#8a4d00;
+  --b1:#e6f5ea; --b2:#e8eefc; --b3:#fff3df;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;background:var(--bg);color:var(--ink);font-size:clamp(17px,2vw,28px);line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+input{font-family:inherit;font-size:inherit}
+.noscript{background:#fff1d6;color:#8a4d00;text-align:center;padding:.5em;font-weight:700;border-bottom:2px solid #f0c27a}
+.wrap{max-width:1400px;margin:0 auto;padding:clamp(10px,1.6vw,24px) 16px 24px;display:flex;flex-direction:column;gap:clamp(8px,1.2vw,16px);min-height:100vh}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{font-weight:700}
+.steps{display:flex;gap:6px}
+.steps span{width:clamp(28px,3.4vw,44px);height:clamp(28px,3.4vw,44px);border-radius:50%;display:grid;place-items:center;background:var(--card);border:2px solid var(--line);font-size:.75em}
+.steps span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.steps span.done{background:var(--ok-bg);border-color:var(--ok)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:clamp(12px,2vw,28px);box-shadow:0 6px 18px rgba(19,50,74,.08)}
+.scene-head{display:flex;align-items:center;gap:.5em;flex-wrap:wrap}
+h1{font-size:1.8em;margin:.1em 0}
+h2{font-size:1.3em;margin:0}
+.lead{color:var(--muted);margin:.15em 0 .5em}
+.q{font-size:1.2em;font-weight:700;margin:.35em 0}
+.opts{display:grid;gap:clamp(8px,1vw,12px)}
+.opt{display:flex;align-items:center;gap:.6em;text-align:right;background:#f8fbfe;border:3px solid var(--line);border-radius:18px;padding:.35em .7em;min-height:58px;font-size:1.05em}
+.opt .letter{flex:0 0 auto;width:1.9em;height:1.9em;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.opt .mark{margin-inline-start:auto;font-weight:700}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt[disabled]{cursor:default}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.feedback{border-radius:16px;padding:.5em .8em;font-weight:700;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:var(--ok-bg);color:var(--ok)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.feedback.hint{background:var(--hint-bg);color:var(--hint-ink)}
+.nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:18px;padding:.4em 1.2em;min-height:58px;font-weight:700}
+.btn:hover{background:var(--accent-dark)}
+.btn.outline{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn.pulse{animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(31,111,168,.5)}50%{box-shadow:0 0 0 10px rgba(31,111,168,0)}}
+
+/* drawn pictures (svg, offline) */
+.pic{position:relative;border-radius:18px;overflow:hidden;background:#dfeefa}
+.pic > svg{display:block;width:100%;height:100%}
+.scene-pic{aspect-ratio:8/3;max-height:34vh;width:100%;margin:.2em 0 .4em}
+.port-pic{aspect-ratio:640/170;max-height:24vh;width:100%}
+.caption{text-align:center;font-weight:700;color:var(--accent-dark);font-size:.8em;margin:.15em 0 .3em}
+
+/* svg animation */
+.walk{animation:walk 9s linear infinite}
+@keyframes walk{from{transform:translateX(160px)}to{transform:translateX(-160px)}}
+.page{animation:fall 2.6s ease-in infinite}
+.page.p2{animation-delay:.9s}.page.p3{animation-delay:1.7s}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:0}25%{opacity:1}100%{transform:translateY(70px) rotate(40deg);opacity:0}}
+.sail{animation:sail 7s ease-in-out infinite}
+@keyframes sail{0%,100%{transform:translateX(40px)}50%{transform:translateX(-40px)}}
+.bob{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.fly{animation:fly 6s linear infinite}
+@keyframes fly{from{transform:translateX(260px)}to{transform:translateX(-420px)}}
+.wave{animation:wave 3s linear infinite}
+@keyframes wave{from{transform:translateX(0)}to{transform:translateX(-40px)}}
+.arrive{animation:arrive 5s ease-out infinite}
+@keyframes arrive{0%{transform:translateX(-180px)}60%,100%{transform:translateX(0)}}
+.leave{animation:leave 5s ease-in infinite}
+@keyframes leave{0%,30%{transform:translateX(0)}100%{transform:translateX(-260px)}}
+@media (prefers-reduced-motion:reduce){.walk,.page,.sail,.bob,.fly,.wave,.arrive,.leave{animation:none}}
+
+/* drag scenes */
+.boxes{display:flex;flex-wrap:wrap;gap:clamp(8px,1vw,14px);justify-content:center;min-height:2.4em;padding:.2em 0}
+.boxitem{touch-action:none;user-select:none;-webkit-user-select:none;background:linear-gradient(#fffaf0,#f6e7cc);border:2px solid #d9b77f;border-radius:14px;padding:.2em .6em .2em .8em;min-height:60px;display:flex;align-items:center;gap:.4em;font-weight:700;box-shadow:0 4px 0 #c99a55,0 6px 12px rgba(0,0,0,.12);cursor:grab}
+.carton{position:relative;width:2.6em;height:2.2em;flex:0 0 auto}
+.carton svg{width:100%;height:100%;display:block}
+.carton .e{position:absolute;right:30%;left:6%;top:40%;text-align:center;font-size:.75em;line-height:1}
+.boxitem.picked{outline:4px solid var(--accent);outline-offset:2px}
+.boxitem.dragclone{position:fixed;z-index:50;pointer-events:none;opacity:.95;transform:translate(-50%,-50%) rotate(-4deg) scale(1.05);cursor:grabbing;margin:0}
+.boxitem.placeholder{opacity:.3}
+.baskets{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,1vw,14px)}
+.basket{border:3px dashed var(--line);border-radius:20px;padding:.3em;min-height:clamp(130px,16vw,220px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:.15em;transition:transform .1s}
+.basket.b1{background:var(--b1)} .basket.b2{background:var(--b2)} .basket.b3{background:var(--b3)}
+.basket .bimg{width:clamp(48px,6vw,84px);height:auto}
+.basket .t{font-weight:700;font-size:1.1em}
+.basket .s{font-size:.6em;color:var(--muted);line-height:1.3}
+.basket.over{border-style:solid;border-color:var(--accent);transform:scale(1.02)}
+.basket .in{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:auto}
+.basket .in span{background:#fff;border:2px solid var(--ok);border-radius:10px;padding:0 .35em;font-size:.7em}
+
+/* golden */
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.product{border:2px solid var(--line);border-radius:18px;padding:.5em;background:#f8fbfe;display:flex;flex-direction:column;gap:.35em}
+.product .pic{aspect-ratio:4/3;background:linear-gradient(#f3f8fc,#dcebf6)}
+.product .co{font-weight:700}
+.product .item{font-size:.85em;color:var(--muted)}
+.product input{border:2px solid var(--line);border-radius:12px;padding:.25em .5em;font-size:.9em;width:100%;background:#fff;color:var(--ink)}
+.product .row{display:flex;gap:6px;flex-wrap:wrap}
+.product .row button{flex:1 1 45%;min-height:52px;border-radius:14px;border:2px solid var(--line);background:#fff;font-size:.8em;padding:.2em .4em}
+.product .msg{font-size:.75em;font-weight:700;min-height:1.4em}
+.product .msg.ok{color:var(--ok)}
+.small{font-size:.7em;color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.summary div{border-radius:16px;padding:.5em;border:2px solid var(--line)}
+.hidden{display:none !important}
+@media (max-width:640px){
+  .baskets,.summary{grid-template-columns:1fr}
+  .basket{min-height:90px;flex-direction:row;flex-wrap:wrap;justify-content:center}
+  .basket .bimg{width:44px}
+  .basket .in{margin-top:0;width:100%}
+  .scene-pic{aspect-ratio:16/9}
+}
+</style>
+</head>
+<body>
+<noscript><div class="noscript">افتحي الملف في متصفح Chrome أو Edge</div></noscript>
+
+<!-- drawn art: everything is drawn in code and works offline -->
+<svg aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+<defs>
+  <linearGradient id="gCamel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ecc287"/><stop offset="1" stop-color="#b27a3a"/></linearGradient>
+  <linearGradient id="gCamelLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c99556"/><stop offset="1" stop-color="#8a5a27"/></linearGradient>
+  <linearGradient id="gSkyWarm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a8"/><stop offset="1" stop-color="#fff3d6"/></linearGradient>
+  <radialGradient id="gSun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".6" stop-color="#ffd166"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gDuneB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b26a"/><stop offset="1" stop-color="#cf9550"/></linearGradient>
+  <linearGradient id="gDuneF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6cf92"/><stop offset="1" stop-color="#dba45f"/></linearGradient>
+  <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3f7"/><stop offset="1" stop-color="#e6f5ff"/></linearGradient>
+  <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a8dcc"/><stop offset="1" stop-color="#0d4a7e"/></linearGradient>
+  <linearGradient id="gHull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22406b"/><stop offset=".55" stop-color="#16304f"/><stop offset=".56" stop-color="#b8382b"/><stop offset="1" stop-color="#7d241b"/></linearGradient>
+  <linearGradient id="gSteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f6c344"/><stop offset="1" stop-color="#d99a14"/></linearGradient>
+  <linearGradient id="gQuay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9c2cc"/><stop offset="1" stop-color="#7d8894"/></linearGradient>
+  <linearGradient id="gCarton" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6b26e"/><stop offset="1" stop-color="#b97e3b"/></linearGradient>
+  <linearGradient id="gCartonTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d6a2"/><stop offset="1" stop-color="#ddaa66"/></linearGradient>
+  <linearGradient id="gWicker" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2ad62"/><stop offset="1" stop-color="#a06a2c"/></linearGradient>
+  <linearGradient id="gMilk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe7ee"/></linearGradient>
+  <linearGradient id="gTin" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c7cfd6"/><stop offset=".35" stop-color="#f4f6f8"/><stop offset="1" stop-color="#9aa5af"/></linearGradient>
+  <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf6ea"/><stop offset="1" stop-color="#e8dcc6"/></linearGradient>
+  <pattern id="pCorr" width="4" height="8" patternUnits="userSpaceOnUse"><rect width="2" height="8" fill="#000" opacity=".16"/></pattern>
+  <pattern id="pWeave" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 5h10M5 0v10" stroke="#6e4316" stroke-width="1.6" opacity=".45"/></pattern>
+
+  <symbol id="camel" viewBox="0 0 120 100">
+    <ellipse cx="68" cy="95" rx="40" ry="4" fill="#000" opacity=".15"/>
+    <path d="M54 66 L55 80 L52 93 L56 93 L60 80 L59 66Z" fill="url(#gCamelLeg)" opacity=".8"/>
+    <path d="M90 64 L92 80 L89 93 L93 93 L97 80 L95 64Z" fill="url(#gCamelLeg)" opacity=".8"/>
+    <path d="M44 66 L42 80 L45 93 L49 93 L47 80 L49 66Z" fill="url(#gCamelLeg)"/>
+    <path d="M80 66 L79 80 L82 93 L86 93 L85 80 L86 66Z" fill="url(#gCamelLeg)"/>
+    <path d="M100 50 C106 54 106 62 103 68" stroke="#9a6630" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M38 52 C38 40 48 36 56 37 C60 22 76 20 82 36 C92 36 102 44 101 55 C100 66 90 70 80 70 L50 70 C42 70 38 62 38 52Z" fill="url(#gCamel)"/>
+    <path d="M42 54 C34 52 28 44 25 34 C23 26 20 21 15 20 L9 20 C5 20 3 23 4 26 C5 29 9 30 13 30 C16 31 18 36 20 44 C23 54 30 60 40 61Z" fill="url(#gCamel)"/>
+    <path d="M17 18 l2 -6 l2.5 6z" fill="#a8723a"/>
+    <circle cx="13" cy="23" r="1.4" fill="#3a2410"/>
+    <path d="M4 26 q3 2 6 1" stroke="#7a4b1c" stroke-width="1" fill="none"/>
+    <path d="M44 44 h12 v18 a4 4 0 0 1 -4 4 h-4 a4 4 0 0 1 -4 -4z" fill="#4f8a4a"/>
+    <path d="M44 50 h12 M44 56 h12" stroke="#f1d27a" stroke-width="1.5"/>
+    <path d="M82 44 h12 v18 a4 4 0 0 1 -4 4 h-4 a4 4 0 0 1 -4 -4z" fill="#3b6fa3"/>
+    <path d="M82 50 h12 M82 56 h12" stroke="#f1d27a" stroke-width="1.5"/>
+    <path d="M52 40 C58 27 76 25 82 40 L84 53 L50 53Z" fill="#b23a2e"/>
+    <path d="M51 47 H84" stroke="#f4c542" stroke-width="2"/>
+    <path d="M50 51 H85" stroke="#2d6a4f" stroke-width="2"/>
+    <g fill="#f4c542"><circle cx="52" cy="55" r="1.6"/><circle cx="58" cy="55" r="1.6"/><circle cx="64" cy="55" r="1.6"/><circle cx="70" cy="55" r="1.6"/><circle cx="76" cy="55" r="1.6"/><circle cx="82" cy="55" r="1.6"/></g>
+    <path d="M60 33 C65 25 73 26 77 33" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <symbol id="ship" viewBox="0 0 300 120">
+    <ellipse cx="150" cy="108" rx="140" ry="6" fill="#06325a" opacity=".35"/>
+    <g id="containers"></g>
+    <rect x="232" y="26" width="42" height="40" rx="3" fill="#f4f6f8"/>
+    <rect x="228" y="20" width="50" height="7" rx="2" fill="#d9dee3"/>
+    <g fill="#24527f"><rect x="236" y="32" width="7" height="5" rx="1"/><rect x="246" y="32" width="7" height="5" rx="1"/><rect x="256" y="32" width="7" height="5" rx="1"/><rect x="266" y="32" width="5" height="5" rx="1"/><rect x="236" y="44" width="7" height="5" rx="1"/><rect x="246" y="44" width="7" height="5" rx="1"/><rect x="256" y="44" width="7" height="5" rx="1"/></g>
+    <rect x="252" y="6" width="13" height="15" rx="2" fill="#c0392b"/>
+    <rect x="252" y="10" width="13" height="3" fill="#f4f6f8"/>
+    <path d="M26 64 V40 M26 40 L14 52" stroke="#9aa7b4" stroke-width="2"/>
+    <path d="M4 62 L294 66 L286 98 Q284 106 274 106 H36 Q26 106 20 98 Z" fill="url(#gHull)"/>
+    <path d="M8 72 H289" stroke="#ffffff" stroke-width="2" opacity=".75"/>
+    <path d="M6 64 L294 67" stroke="#0b1f36" stroke-width="2"/>
+    <circle cx="40" cy="80" r="3" fill="#0b1f36" opacity=".6"/>
+  </symbol>
+
+  <symbol id="plane" viewBox="0 0 120 50">
+    <path d="M52 26 L78 46 H88 L72 26Z" fill="#b7c7d8"/>
+    <path d="M6 26 C6 20 14 18 24 18 H100 L112 6 H119 L113 26 Q111 32 100 32 H24 C14 32 6 31 6 26Z" fill="#f7f9fc" stroke="#9fb3c8" stroke-width="1"/>
+    <path d="M10 28 H108" stroke="#1f6fa8" stroke-width="2"/>
+    <g fill="#5b7894"><circle cx="30" cy="23" r="1.6"/><circle cx="38" cy="23" r="1.6"/><circle cx="46" cy="23" r="1.6"/><circle cx="54" cy="23" r="1.6"/><circle cx="62" cy="23" r="1.6"/><circle cx="70" cy="23" r="1.6"/><circle cx="78" cy="23" r="1.6"/><circle cx="86" cy="23" r="1.6"/></g>
+    <path d="M10 22 Q14 19 20 19 L18 25 L9 25Z" fill="#5b7894"/>
+    <path d="M60 22 L80 6 H88 L74 22Z" fill="#cfdbe7"/>
+  </symbol>
+
+  <symbol id="crane" viewBox="0 0 120 160">
+    <path d="M28 160 L36 46 M72 160 L64 46 M30 130 L70 130 M32 100 L68 100 M34 72 L66 72 M30 130 L66 100 M70 130 L34 100 M32 100 L64 72 M68 100 L36 72" stroke="url(#gSteel)" stroke-width="5" fill="none"/>
+    <rect x="0" y="36" width="120" height="10" rx="2" fill="url(#gSteel)"/>
+    <path d="M0 36 L50 14 L58 36" stroke="#d99a14" stroke-width="3" fill="none"/>
+    <rect x="40" y="46" width="22" height="16" rx="2" fill="#2f4858"/>
+    <rect x="44" y="49" width="14" height="6" fill="#9fd3f7"/>
+    <path d="M14 46 V84" stroke="#333" stroke-width="1.5"/>
+    <rect x="2" y="84" width="26" height="14" fill="#2e8b57"/><rect x="2" y="84" width="26" height="14" fill="url(#pCorr)"/>
+  </symbol>
+
+  <symbol id="carton" viewBox="0 0 64 54">
+    <path d="M6 14 L20 4 H58 L44 14Z" fill="url(#gCartonTop)"/>
+    <rect x="6" y="14" width="38" height="36" fill="url(#gCarton)"/>
+    <path d="M44 14 L58 4 V40 L44 50Z" fill="#a36f33"/>
+    <rect x="22" y="14" width="6" height="36" fill="#f0dcb2" opacity=".85"/>
+    <path d="M22 14 L36 4 H42 L28 14Z" fill="#f5e6c4"/>
+    <rect x="9" y="26" width="32" height="18" rx="2" fill="#fff" opacity=".92"/>
+    <path d="M6 50 H44" stroke="#8e5b25" stroke-width="1"/>
+  </symbol>
+
+  <symbol id="basket" viewBox="0 0 100 74">
+    <path d="M20 30 C20 0 80 0 80 30" stroke="#8a5a26" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M6 30 H94 L84 66 Q82 72 75 72 H25 Q18 72 16 66Z" fill="url(#gWicker)"/>
+    <path d="M6 30 H94 L84 66 Q82 72 75 72 H25 Q18 72 16 66Z" fill="url(#pWeave)"/>
+    <rect x="3" y="25" width="94" height="9" rx="4.5" fill="#c08848"/>
+    <path d="M8 29 H92" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>
+  </symbol>
+
+  <symbol id="house" viewBox="0 0 120 100">
+    <rect x="18" y="38" width="84" height="56" fill="url(#gWall)" stroke="#d2c2a6"/>
+    <path d="M12 40 H108" stroke="#c9a46a" stroke-width="5"/>
+    <g fill="#c9a46a"><rect x="18" y="30" width="10" height="8"/><rect x="36" y="30" width="10" height="8"/><rect x="54" y="30" width="10" height="8"/><rect x="72" y="30" width="10" height="8"/><rect x="90" y="30" width="10" height="8"/></g>
+    <path d="M50 94 V68 a10 10 0 0 1 20 0 V94Z" fill="#8a5a26"/>
+    <rect x="26" y="52" width="16" height="16" rx="2" fill="#9fd3f7" stroke="#8a5a26" stroke-width="2"/>
+    <rect x="78" y="52" width="16" height="16" rx="2" fill="#9fd3f7" stroke="#8a5a26" stroke-width="2"/>
+    <path d="M100 94 C100 70 106 56 112 50 M106 60 C98 52 92 54 88 56 M108 58 C114 50 118 52 120 54" stroke="#3f7d3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <symbol id="milk" viewBox="0 0 80 110">
+    <ellipse cx="40" cy="106" rx="26" ry="3" fill="#000" opacity=".12"/>
+    <rect x="34" y="4" width="12" height="8" rx="1" fill="#e4e8ec"/>
+    <path d="M18 34 L34 12 H46 L62 34Z" fill="#f4f6f8" stroke="#c9d1d8"/>
+    <path d="M40 12 L62 34" stroke="#c9d1d8"/>
+    <rect x="18" y="34" width="44" height="70" fill="url(#gMilk)" stroke="#c9d1d8"/>
+    <path d="M28 48 h24 l-3 30 a3 3 0 0 1 -3 3 h-12 a3 3 0 0 1 -3 -3z" fill="#ffffff" stroke="#aab6c1" stroke-width="1.5"/>
+    <path d="M29 56 h22 l-2.4 22 h-17.2z" fill="#f3f6f9"/>
+    <path d="M24 90 h32" stroke="#c9d1d8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 40 V98" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  </symbol>
+
+  <symbol id="paste" viewBox="0 0 80 110">
+    <ellipse cx="40" cy="104" rx="28" ry="4" fill="#000" opacity=".12"/>
+    <path d="M14 34 V92 a26 8 0 0 0 52 0 V34" fill="url(#gTin)"/>
+    <ellipse cx="40" cy="34" rx="26" ry="8" fill="#e9edf0" stroke="#aab4bd"/>
+    <ellipse cx="40" cy="34" rx="20" ry="5.5" fill="none" stroke="#c3cbd2"/>
+    <path d="M14 50 V80 a26 8 0 0 0 52 0 V50 a26 8 0 0 1 -52 0z" fill="#f7f1e6"/>
+    <circle cx="40" cy="66" r="10" fill="#d64533"/>
+    <path d="M34 58 q6 -6 12 0 q-6 -2 -12 0z" fill="#3f8a3a"/>
+    <path d="M40 56 v-4" stroke="#3f8a3a" stroke-width="2" stroke-linecap="round"/>
+    <path d="M36 62 q2 -2 4 -1" stroke="#fff" stroke-opacity=".6" stroke-width="1.5" fill="none"/>
+    <path d="M20 38 V94" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+
+  <symbol id="tin" viewBox="0 0 80 110">
+    <ellipse cx="40" cy="98" rx="32" ry="4" fill="#000" opacity=".12"/>
+    <path d="M8 58 V86 a32 9 0 0 0 64 0 V58" fill="url(#gTin)"/>
+    <path d="M8 64 V80 a32 9 0 0 0 64 0 V64 a32 9 0 0 1 -64 0z" fill="#f7f1e6"/>
+    <ellipse cx="40" cy="58" rx="32" ry="9" fill="#e9edf0" stroke="#aab4bd"/>
+    <ellipse cx="40" cy="58" rx="25" ry="6" fill="none" stroke="#c3cbd2"/>
+    <circle cx="58" cy="56" r="3.5" fill="#c3cbd2"/>
+    <path d="M28 76 h24" stroke="#c9a46a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M32 70 h16" stroke="#e0cfae" stroke-width="2" stroke-linecap="round"/>
+    <path d="M14 62 V88" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+    <path d="M18 22 v20 M30 16 v26 M50 16 v26 M62 22 v20" stroke="#cfd8e0" stroke-width="2" stroke-dasharray="2 4" opacity=".0"/>
+  </symbol>
+
+  <symbol id="bag" viewBox="0 0 80 110">
+    <ellipse cx="40" cy="106" rx="28" ry="3" fill="#000" opacity=".12"/>
+    <path d="M28 30 C28 14 52 14 52 30" stroke="#8a5a26" stroke-width="4" fill="none"/>
+    <path d="M14 30 H66 L62 102 H18Z" fill="url(#gCarton)"/>
+    <path d="M14 30 H66 L64 40 H16Z" fill="#000" opacity=".08"/>
+    <circle cx="30" cy="26" r="9" fill="#e74c3c"/><path d="M30 17 q3 -5 7 -4" stroke="#3f7d3a" stroke-width="2" fill="none"/>
+    <rect x="42" y="12" width="12" height="22" rx="3" fill="#f2f6f9" stroke="#cdd8e1"/>
+    <path d="M40 60 h0" stroke="#000"/>
+  </symbol>
+</defs>
+</svg>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">🚢 صناديق الميناء</div>
+    <div class="steps" id="steps" aria-label="المشاهد"></div>
+  </div>
+  <main id="stage"></main>
+  <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  <div class="nav">
+    <button class="btn outline" id="prevBtn">➡️ السابق</button>
+    <button class="btn" id="nextBtn">التالي ⬅️</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var LETTERS = ["أ","ب","ج"];
+  var PORT = "ميناء الملك عبدالعزيز بالدمام";
+
+  /* containers on the ship (generated once) */
+  (function(){
+    var colors = ["#d9534f","#1f6fa8","#f0ad4e","#2e8b57","#6c5ce7","#e67e22","#16a085"];
+    var g = document.getElementById("containers"), html = "", k = 0;
+    for(var row=0; row<2; row++){
+      for(var c=0; c<7; c++){
+        var x = 40 + c*27, y = row===0 ? 48 : 34;
+        if(row===1 && (c===0 || c===6)) continue;
+        var col = colors[(k++)%colors.length];
+        html += '<rect x="'+x+'" y="'+y+'" width="26" height="14" fill="'+col+'"/><rect x="'+x+'" y="'+y+'" width="26" height="14" fill="url(#pCorr)"/><rect x="'+x+'" y="'+y+'" width="26" height="14" fill="none" stroke="#000" stroke-opacity=".2"/>';
+      }
+    }
+    g.innerHTML = html;
+  })();
+
+  function pic(svg, cls){ return '<div class="pic '+(cls||"")+'">'+svg+'</div>'; }
+  function use(id, x, y, w, h, extra){ return '<use href="#'+id+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" '+(extra||"")+'/>'; }
+
+  var ART = {
+    caravan:
+      '<svg viewBox="0 0 640 240" preserveAspectRatio="xMidYMid slice" role="img" aria-label="قافلة جمال في الصحراء">'+
+      '<rect width="640" height="240" fill="url(#gSkyWarm)"/>'+
+      '<circle cx="520" cy="62" r="52" fill="url(#gSun)"/>'+
+      '<path d="M0 168 Q120 126 250 160 T500 150 T640 146 V240 H0Z" fill="url(#gDuneB)"/>'+
+      '<path d="M0 206 Q170 166 330 196 T640 186 V240 H0Z" fill="url(#gDuneF)"/>'+
+      '<path d="M40 214 q20 -6 40 0 M420 222 q24 -7 48 0" stroke="#c99556" stroke-width="2" fill="none" opacity=".6"/>'+
+      '<g class="walk"><path d="M200 168 L290 168 M330 168 L410 168" stroke="#7a4b1c" stroke-width="1.5" stroke-dasharray="3 3"/>'+
+        use("camel",150,110,120,100)+use("camel",270,112,116,96)+use("camel",385,114,112,93)+'</g>'+
+      '<g class="page" ><rect x="90" y="40" width="34" height="40" rx="3" fill="#fff" stroke="#c0392b"/><rect x="90" y="40" width="34" height="10" fill="#c0392b"/><path d="M96 58 h22 M96 64 h22 M96 70 h14" stroke="#bbb"/></g>'+
+      '<g class="page p2"><rect x="140" y="30" width="30" height="36" rx="3" fill="#fff" stroke="#c0392b"/><rect x="140" y="30" width="30" height="9" fill="#c0392b"/><path d="M145 46 h20 M145 52 h20" stroke="#bbb"/></g>'+
+      '<g class="page p3"><rect x="40" y="26" width="30" height="36" rx="3" fill="#fff" stroke="#c0392b"/><rect x="40" y="26" width="30" height="9" fill="#c0392b"/><path d="M45 42 h20 M45 48 h20" stroke="#bbb"/></g>'+
+      '</svg>',
+    ship:
+      '<svg viewBox="0 0 640 240" preserveAspectRatio="xMidYMid slice" role="img" aria-label="سفينة شحن وطائرة">'+
+      '<rect width="640" height="240" fill="url(#gSky)"/>'+
+      '<g fill="#fff" opacity=".9"><ellipse cx="120" cy="50" rx="44" ry="14"/><ellipse cx="150" cy="42" rx="30" ry="14"/><ellipse cx="470" cy="70" rx="50" ry="13"/><ellipse cx="500" cy="62" rx="28" ry="12"/></g>'+
+      '<g class="fly">'+use("plane",430,36,130,54)+'</g>'+
+      '<rect y="150" width="640" height="90" fill="url(#gSea)"/>'+
+      '<g class="sail"><g class="bob">'+use("ship",150,72,330,132)+'</g></g>'+
+      '<g class="wave" stroke="#fff" stroke-opacity=".55" stroke-width="2.5" fill="none"><path d="M0 200 q20 -8 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/><path d="M-20 222 q20 -8 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/></g>'+
+      '</svg>',
+    port: function(leaving){
+      var ship = leaving
+        ? '<g class="leave"><g class="bob">'+use("ship",170,60,250,100)+'</g></g>'
+        : '<g class="arrive"><g class="bob"><g transform="translate(420 0) scale(-1 1)">'+use("ship",0,60,250,100)+'</g></g></g>';
+      return '<svg viewBox="0 0 640 170" preserveAspectRatio="xMidYMid slice" role="img" aria-label="'+PORT+'">'+
+        '<rect width="640" height="170" fill="url(#gSky)"/>'+
+        '<g fill="#fff" opacity=".85"><ellipse cx="90" cy="34" rx="40" ry="11"/><ellipse cx="330" cy="26" rx="34" ry="9"/></g>'+
+        '<rect y="130" width="640" height="40" fill="url(#gSea)"/>'+
+        '<rect x="440" y="120" width="200" height="50" fill="url(#gQuay)"/>'+
+        '<path d="M440 120 H640" stroke="#5f6b77" stroke-width="3"/>'+
+        use("crane",470,0,96,128)+
+        '<g>'+
+          '<rect x="565" y="96" width="34" height="24" fill="#1f6fa8"/><rect x="565" y="96" width="34" height="24" fill="url(#pCorr)"/>'+
+          '<rect x="600" y="96" width="34" height="24" fill="#d9534f"/><rect x="600" y="96" width="34" height="24" fill="url(#pCorr)"/>'+
+          '<rect x="582" y="72" width="34" height="24" fill="#f0ad4e"/><rect x="582" y="72" width="34" height="24" fill="url(#pCorr)"/>'+
+        '</g>'+
+        ship+
+        '<g stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none" class="wave"><path d="M0 150 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/></g>'+
+        '</svg>';
+    },
+    start:
+      '<svg viewBox="0 0 640 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="من القافلة إلى الميناء إلى البيت">'+
+      '<defs></defs><rect width="640" height="200" rx="18" fill="url(#gSkyWarm)"/>'+
+      '<path d="M560 150 C470 190 420 110 330 140 S170 190 80 140" stroke="#c99556" stroke-width="4" stroke-dasharray="10 8" fill="none"/>'+
+      use("camel",500,70,120,100)+use("ship",250,70,170,68)+use("crane",380,30,60,90)+use("house",30,70,110,92)+
+      '</svg>'
+  };
+  var BASKETS = [
+    {id:"get", cls:"b1", t:"📥 نحصل", s:"على منتجات يصعب توافرها في وطننا"},
+    {id:"use", cls:"b2", t:"🔧 نستفيد", s:"من صناعات الدول الأخرى"},
+    {id:"sell", cls:"b3", t:"📤 نبيع", s:"إنتاجنا الوطني"}
+  ];
+  var WHY = {
+    get:"نحصل من دول أخرى على منتجات كثيرة يصعب توافرها في وطننا، مثل بعض الفواكه والخضراوات (ص101).",
+    use:"نستفيد من صناعات بعض الدول الأخرى، مثل الأجهزة الإلكترونية، والسيارات (ص101).",
+    sell:"نبيع إنتاجنا الوطني، مثل النفط ومشتقاته، والتمور (ص101)."
+  };
+  /* شركات أغذية سعودية اختارتها المعلمة (المصادر في 04-sharara.md). نص فقط، ورسوم عامة بلا شعار ولا ألوان علامة تجارية */
+  var PRODUCTS = [
+    {co:"السعودية", item:"معجون الطماطم", art:"paste"},
+    {co:"المراعي", item:"الحليب الطازج", art:"milk"},
+    {co:"حلواني إخوان", item:"منتجات اللحوم المعلّبة", art:"tin"},
+    {co:"", item:"", art:"bag", open:true}
+  ];
+  var SCENES = [
+    {type:"start"},
+    {type:"mcq", icon:"🐪", title:"أمس: القافلة", lead:"قديماً كانت قوافل الجمال تحمل السلع من بلد إلى بلد في طريق طويل.",  art:"caravan",
+     q:"كم كان يستغرق التبادل التجاري قديماً؟",
+     options:["شهوراً","دقائق","يوماً واحداً"], correct:0,
+     hints:{1:"الجمال تمشي ببطء في طريق طويل… هل تكفي دقائق؟",2:"الطريق طويل جداً… فكّري في مدة أطول بكثير."},
+     why:"قديماً كان التبادل التجاري يستغرق شهوراً (ص101)."},
+    {type:"mcq", icon:"✈️", title:"اليوم: السفينة والطائرة", lead:"اليوم تحمل السفن والطائرات السلع بين الدول.",  art:"ship",
+     q:"لماذا أصبح التبادل التجاري اليوم سريعاً؟",
+     options:["لتوافر وسائل المواصلات الحديثة والتقنيات الجديدة","لأن الناس عادوا إلى المقايضة","لأن السلع صارت قليلة"], correct:0,
+     hints:{1:"المقايضة طريقة قديمة… وما الذي تغيّر في وسائل النقل؟",2:"انظري إلى السفينة والطائرة… ما الذي يجعل الرحلة أسرع؟"},
+     why:"أصبح التبادل التجاري سريعاً؛ نتيجة توافر وسائل المواصلات الحديثة والتقنيات الجديدة (ص101)."},
+    {type:"drag", icon:"📦", title:"صناديق تصل إلى وطننا", lead:"وصلت سفينة إلى "+PORT+". اسحبي كل صندوق إلى سلته (أو المسيه ثم المسي السلة).",  leaving:false,
+     boxes:[{e:"🍎",n:"فواكه",to:"get"},{e:"🥕",n:"خضراوات",to:"get"},{e:"💻",n:"أجهزة إلكترونية",to:"use"},{e:"🚗",n:"سيارات",to:"use"}],
+     hint:{get:"هذه المنتجات تصنعها مصانع في دول أخرى… فماذا نفعل بصناعاتهم؟", use:"هذه منتجات يصعب توافرها في وطننا… هل هي صناعة أم منتجات نحصل عليها؟", sell:"هذا الصندوق يصل إلى وطننا، لا يخرج منه! هل نبيعه أم نشتريه من دول أخرى؟"}},
+    {type:"drag", icon:"🌴", title:"صناديق تخرج من وطننا", lead:"سفينة تغادر "+PORT+" إلى دول أخرى. اسحبي كل صندوق إلى سلته.",  leaving:true,
+     boxes:[{e:"🌴",n:"تمور",to:"sell"},{e:"🛢️",n:"النفط ومشتقاته",to:"sell"}],
+     hint:{get:"هذا الصندوق يخرج من وطننا على السفينة… هل نحن نشتريه أم نبيعه؟", use:"هذا من إنتاج وطننا، لا من صناعات دول أخرى… فماذا نفعل به؟"},
+     after:"ما فائدة التبادل التجاري لوطننا؟", afterAns:"تعتمد الدول على التبادل التجاري من أجل تنمية اقتصادها (ص101)."},
+    {type:"golden", icon:"🧺", title:"السؤال الذهبي: سلة من الدمام", lead:"منتجات من شركات أغذية سعودية كبرى، وعبواتها الحقيقية في يد معلمتك. اقرئي الملصق: أين صُنعت هذه العبوة؟"},
+    {type:"end"}
+  ];
+
+  var cur = 0, done = {}, golden = PRODUCTS.map(function(){ return {}; });
+  var dragState = {};
+
+  function setFeedback(msg, kind){ var f=$("feedback"); f.className="feedback"+(msg?" show "+kind:""); f.textContent=msg; if(msg){ setTimeout(function(){ f.scrollIntoView({block:"nearest",behavior:"smooth"}); },30); } }
+
+  function renderSteps(){
+    var s=$("steps"); s.innerHTML="";
+    for(var i=1;i<=5;i++){ var d=document.createElement("span"); d.textContent=i; if(i===cur) d.className="on"; else if(done[i]) d.className="done"; s.appendChild(d); }
+  }
+
+  function go(i){
+    cur = Math.max(0, Math.min(SCENES.length-1, i));
+    setFeedback("", "");
+    render();
+    window.scrollTo(0,0);
+  }
+
+  function head(sc){
+    return '<div class="scene-head"><h2>'+sc.icon+' المشهد '+cur+': '+sc.title+'</h2></div><p class="lead">'+sc.lead+'</p>';
+  }
+
+  function render(){
+    var sc = SCENES[cur], st = $("stage");
+    renderSteps();
+    $("prevBtn").style.visibility = cur===0 ? "hidden" : "visible";
+    $("nextBtn").style.visibility = cur===SCENES.length-1 ? "hidden" : "visible";
+    $("nextBtn").textContent = cur===0 ? "ابدئي الرحلة ⬅️" : (cur===SCENES.length-2 ? "نهاية الرحلة ⬅️" : "التالي ⬅️");
+    $("nextBtn").classList.toggle("pulse", !!done[cur] || cur===0);
+    if(sc.type==="start"){
+      st.innerHTML = '<section class="card" style="text-align:center">'+pic(ART.start, "scene-pic")+'<h1>رحلة صناديق الميناء</h1><p class="lead">سوقنا يكبر ويصير بين الدول! نتبع سلة التاجرة الصغيرة من القافلة القديمة إلى '+PORT+'، ثم إلى بيتها في الدمام.</p><p class="small">خمسة مشاهد · الهدف 4: تستنتج فوائد التبادل التجاري بين الدول.</p></section>';
+    } else if(sc.type==="mcq"){ renderMcq(sc, st); }
+    else if(sc.type==="drag"){ renderDrag(sc, st); }
+    else if(sc.type==="golden"){ renderGolden(sc, st); }
+    else { renderEnd(st); }
+  }
+
+  /* ---------- multiple choice ---------- */
+  function renderMcq(sc, st){
+    var state = done[cur] ? {resolved:true} : {attempts:0, resolved:false};
+    st.innerHTML = '<section class="card">'+head(sc)+pic(ART[sc.art], "scene-pic")+'<div class="q">'+sc.q+'</div><div class="opts" id="opts"></div></section>';
+    var box = $("opts");
+    sc.options.forEach(function(o,i){
+      var b=document.createElement("button"); b.className="opt"; b.type="button"; b.dataset.i=i;
+      b.innerHTML='<span class="letter">'+LETTERS[i]+'</span><span class="ot"></span><span class="mark"></span>';
+      b.querySelector(".ot").textContent=o;
+      b.addEventListener("click", function(){ pick(i); });
+      box.appendChild(b);
+    });
+    if(state.resolved){ finish(); setFeedback("✔ "+sc.why, "ok"); }
+    function pick(i){
+      if(state.resolved) return;
+      if(i===sc.correct){ finish(); setFeedback("✔ صحيح! "+sc.why, "ok"); return; }
+      state.attempts++;
+      var b=box.children[i]; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake");
+      if(state.attempts>=2){ finish(); setFeedback("الإجابة الصحيحة: "+LETTERS[sc.correct]+") "+sc.options[sc.correct]+". "+sc.why, "ok"); return; }
+      setFeedback("✘ حاولي مرة أخرى: "+(sc.hints[i]||"فكّري مرة أخرى."), "bad");
+    }
+    function finish(){
+      state.resolved=true; done[cur]=true;
+      Array.prototype.forEach.call(box.children,function(b){ b.disabled=true; if(+b.dataset.i===sc.correct){ b.classList.add("right"); b.querySelector(".mark").textContent="✔"; } });
+      renderSteps(); $("nextBtn").classList.add("pulse");
+    }
+  }
+
+  /* ---------- drag & drop (pointer events on window + tap fallback) ---------- */
+  function renderDrag(sc, st){
+    var key = "s"+cur;
+    if(!dragState[key]) dragState[key] = {placed:{}, tries:{}};
+    var ds = dragState[key];
+    var html = '<section class="card">'+head(sc)+pic(ART.port(sc.leaving), "port-pic")+
+      '<div class="caption">⚓ '+PORT+(sc.leaving ? " · 🚢 ⬅️ إلى دول أخرى" : " · 🚢 وصلت من دول أخرى")+'</div>'+
+      '<div class="boxes" id="boxes"></div><div class="baskets" id="baskets"></div>';
+    if(sc.after) html += '<div id="after" class="hidden" style="margin-top:.6em"><div class="q">'+sc.after+'</div><button class="btn outline" id="afterBtn">اكشفي الإجابة</button><div id="afterAns" class="feedback"></div></div>';
+    html += '</section>';
+    st.innerHTML = html;
+    var bWrap=$("baskets");
+    BASKETS.forEach(function(b){
+      var d=document.createElement("div"); d.className="basket "+b.cls; d.dataset.id=b.id;
+      d.innerHTML='<svg class="bimg" viewBox="0 0 100 74" aria-hidden="true"><use href="#basket"/></svg><div><div class="t">'+b.t+'</div><div class="s">'+b.s+'</div></div><div class="in"></div>';
+      d.addEventListener("click", function(){ if(picked!==null) dropOn(picked, b.id); });
+      bWrap.appendChild(d);
+    });
+    var picked = null;
+    var boxWrap=$("boxes");
+    sc.boxes.forEach(function(bx, i){
+      if(ds.placed[i]){ addToBasket(bx); return; }
+      var el=document.createElement("div"); el.className="boxitem"; el.dataset.i=i; el.setAttribute("role","button"); el.setAttribute("tabindex","0");
+      el.innerHTML='<span class="carton"><svg viewBox="0 0 64 54" aria-hidden="true"><use href="#carton"/></svg><span class="e">'+bx.e+'</span></span><span>'+bx.n+'</span>';
+      attachDrag(el, i);
+      boxWrap.appendChild(el);
+    });
+    checkComplete();
+
+    function addToBasket(bx){
+      var b = bWrap.querySelector('[data-id="'+bx.to+'"] .in');
+      var s=document.createElement("span"); s.textContent=bx.e+" "+bx.n; b.appendChild(s);
+    }
+    function dropOn(i, bid){
+      var bx = sc.boxes[i], el = boxWrap.querySelector('[data-i="'+i+'"]');
+      if(!el) return;
+      el.classList.remove("picked"); picked=null;
+      if(bid===bx.to){
+        ds.placed[i]=true; el.remove(); addToBasket(bx);
+        setFeedback("✔ صحيح! "+WHY[bx.to], "ok");
+        checkComplete(); return;
+      }
+      ds.tries[i]=(ds.tries[i]||0)+1;
+      el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+      if(ds.tries[i]>=2){
+        ds.placed[i]=true; el.remove(); addToBasket(bx);
+        var name = BASKETS.filter(function(b){return b.id===bx.to;})[0].t;
+        setFeedback("مكانه الصحيح: "+name+". "+WHY[bx.to], "ok");
+        checkComplete(); return;
+      }
+      setFeedback("✘ حاولي مرة أخرى: "+(sc.hint[bid]||"فكّري مرة أخرى."), "bad");
+    }
+    function checkComplete(){
+      var all = sc.boxes.every(function(_,i){ return ds.placed[i]; });
+      if(all){
+        done[cur]=true; renderSteps(); $("nextBtn").classList.add("pulse");
+        if(sc.after){ $("after").classList.remove("hidden");
+          $("afterBtn").onclick=function(){ var a=$("afterAns"); a.className="feedback show ok"; a.textContent="✔ "+sc.afterAns; };
+        }
+      }
+    }
+    function attachDrag(el, i){
+      var startX=0, startY=0, moving=false, clone=null, lastOver=null, pid=null;
+      /* move/up are listened on window so the drop works with mouse, pen and touch even without pointer capture */
+      el.addEventListener("pointerdown", function(e){
+        if(e.button!==undefined && e.button!==0) return;
+        if(pid!==null) return;
+        pid=e.pointerId; startX=e.clientX; startY=e.clientY; moving=false;
+        window.addEventListener("pointermove", onMove, {passive:false});
+        window.addEventListener("pointerup", onUp);
+        window.addEventListener("pointercancel", onCancel);
+        e.preventDefault();
+      });
+      function detach(){
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onCancel);
+      }
+      function onUp(e){ end(e,false); }
+      function onCancel(e){ end(e,true); }
+      function onMove(e){
+        if(pid!==e.pointerId) return;
+        var dx=e.clientX-startX, dy=e.clientY-startY;
+        if(!moving && (dx*dx+dy*dy)>64){
+          moving=true; clone=el.cloneNode(true); clone.classList.add("dragclone"); clone.classList.remove("picked","shake");
+          document.body.appendChild(clone); el.classList.add("placeholder");
+        }
+        if(moving){
+          clone.style.left=e.clientX+"px"; clone.style.top=e.clientY+"px";
+          var over = basketAt(e.clientX, e.clientY);
+          if(over!==lastOver){ if(lastOver) lastOver.classList.remove("over"); if(over) over.classList.add("over"); lastOver=over; }
+          e.preventDefault();
+        }
+      }
+      function end(e, cancelled){
+        if(pid!==e.pointerId) return;
+        pid=null; detach();
+        if(moving){
+          var over = cancelled ? null : basketAt(e.clientX, e.clientY);
+          if(clone) clone.remove(); clone=null; el.classList.remove("placeholder");
+          if(lastOver) lastOver.classList.remove("over"); lastOver=null;
+          moving=false;
+          if(over) dropOn(i, over.dataset.id);
+        } else if(!cancelled){
+          if(picked===i){ el.classList.remove("picked"); picked=null; setFeedback("", ""); }
+          else{
+            var prev = picked!==null ? boxWrap.querySelector('[data-i="'+picked+'"]') : null; if(prev) prev.classList.remove("picked");
+            picked=i; el.classList.add("picked"); setFeedback("اخترتِ «"+sc.boxes[i].n+"»… الآن المسي السلة المناسبة.", "hint");
+          }
+        }
+      }
+      el.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); picked=i; el.classList.add("picked"); setFeedback("اخترتِ «"+sc.boxes[i].n+"»… الآن اختاري السلة.", "hint"); } });
+    }
+    function basketAt(x,y){
+      var els = document.elementsFromPoint ? document.elementsFromPoint(x,y) : [document.elementFromPoint(x,y)];
+      for(var k=0;k<els.length;k++){ var b = els[k] && els[k].closest ? els[k].closest(".basket") : null; if(b) return b; }
+      return null;
+    }
+  }
+
+  /* ---------- golden question ---------- */
+  function renderGolden(sc, st){
+    st.innerHTML = '<section class="card">'+head(sc)+'<div class="products" id="products"></div><p class="small">الحكم من الملصق الحقيقي، ومعلمتك تتحقق منه. الشركة سعودية، ومكان صنع كل عبوة يُقرأ من ملصقها.</p></section>';
+    var wrap=$("products");
+    golden.forEach(function(g, i){
+      var p = PRODUCTS[i];
+      var d=document.createElement("div"); d.className="product";
+      var svg='<svg viewBox="0 0 160 120" aria-hidden="true"><rect width="160" height="120" fill="none"/><use href="#'+p.art+'" x="40" y="6" width="80" height="110"/></svg>';
+      var info = p.open
+        ? '<div class="co">منتج آخر من مطبخك</div><input type="text" maxlength="40" placeholder="اكتبي اسم المنتج">'
+        : '<div class="co">🏭 '+p.co+' (شركة سعودية)</div><div class="item">المنتج: '+p.item+'</div>';
+      d.innerHTML = pic(svg)+info+
+        '<div class="row step1"><button type="button" data-a="ksa">🌴 صُنع في المملكة</button><button type="button" data-a="other">🌍 صُنع في بلد آخر</button></div>'+
+        '<div class="row step2 hidden"><button type="button" data-a="get">📥 نحصل</button><button type="button" data-a="use">🔧 نستفيد</button></div>'+
+        '<div class="msg"></div><button type="button" class="btn outline redo hidden" style="min-height:44px;font-size:.7em">إعادة</button>';
+      var inp=d.querySelector("input"), s1=d.querySelector(".step1"), s2=d.querySelector(".step2"), msg=d.querySelector(".msg"), redo=d.querySelector(".redo");
+      if(inp){ inp.value = g.name || ""; inp.addEventListener("input", function(){ g.name=inp.value; }); }
+      function paint(){
+        s1.classList.toggle("hidden", !!g.origin);
+        s2.classList.toggle("hidden", g.origin!=="other" || !!g.basket);
+        redo.classList.toggle("hidden", !g.origin);
+        msg.className="msg"; msg.textContent="";
+        if(g.origin==="ksa"){ msg.className="msg ok"; msg.textContent="✔ صناعة سعودية! نختاره دعماً لاقتصاد وطننا (ص102)، ونبيع إنتاجنا الوطني لدول أخرى (ص101)."; }
+        else if(g.origin==="other" && !g.basket){ msg.textContent = p.open ? "جاءنا من بلد آخر… في أي سلة نضعه؟" : "الشركة سعودية، لكن الملصق يقول إن هذه العبوة صُنعت في بلد آخر… في أي سلة نضعها؟"; }
+        else if(g.basket){ msg.className="msg ok"; msg.textContent="✔ "+(g.basket==="get" ? "حصلنا عليه من بلد آخر بالتبادل التجاري (ص101)." : "استفدنا من صناعة بلد آخر بالتبادل التجاري (ص101)."); }
+        var all = golden.every(function(x, k){ return PRODUCTS[k].open || x.origin==="ksa" || !!x.basket; });
+        if(all){ done[cur]=true; renderSteps(); $("nextBtn").classList.add("pulse"); }
+      }
+      s1.addEventListener("click", function(e){ var a=e.target.closest("button"); if(!a) return; g.origin=a.dataset.a; paint(); });
+      s2.addEventListener("click", function(e){ var a=e.target.closest("button"); if(!a) return; g.basket=a.dataset.a; paint(); });
+      redo.addEventListener("click", function(){ g.origin=null; g.basket=null; paint(); });
+      paint();
+      wrap.appendChild(d);
+    });
+  }
+
+  function renderEnd(st){
+    var lists = {get:[], use:[], sell:[]}, ksa = [];
+    [3,4].forEach(function(si){ SCENES[si].boxes.forEach(function(b){ lists[b.to].push(b.e+" "+b.n); }); });
+    golden.forEach(function(g,i){
+      var p = PRODUCTS[i];
+      var n = p.open ? (g.name || "منتج من المطبخ") : (p.item+" ("+p.co+")");
+      if(g.origin==="ksa") ksa.push("🧺 "+n); else if(g.basket) lists[g.basket].push("🧺 "+n);
+    });
+    var html = '<section class="card" style="text-align:center"><h1>انتهت الرحلة! 🎉</h1><p class="lead">تعتمد الدول على التبادل التجاري من أجل تنمية اقتصادها (ص101).</p><div class="summary">';
+    BASKETS.forEach(function(b){ html += '<div style="background:var(--'+b.cls+')"><svg viewBox="0 0 100 74" width="56" aria-hidden="true"><use href="#basket"/></svg><br><strong>'+b.t+'</strong><div class="small">'+b.s+'</div><div>'+lists[b.id].map(escapeHtml).join("<br>")+'</div></div>'; });
+    html += '</div>';
+    if(ksa.length) html += '<p><strong>🌴 من سلة الدمام، صناعة سعودية:</strong> '+ksa.map(escapeHtml).join(" · ")+'</p>';
+    html += '<p></p><button class="btn outline" id="restart">رحلة جديدة</button></section>';
+    st.innerHTML = html;
+    $("restart").onclick=function(){ done={}; dragState={}; golden=PRODUCTS.map(function(){ return {}; }); go(0); };
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  $("nextBtn").addEventListener("click", function(){ go(cur+1); });
+  $("prevBtn").addEventListener("click", function(){ go(cur-1); });
+  document.addEventListener("keydown", function(e){
+    if(e.target && e.target.tagName==="INPUT") return;
+    if(e.code==="KeyN" || e.code==="PageDown") go(cur+1);
+    if(e.code==="KeyP" || e.code==="PageUp") go(cur-1);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

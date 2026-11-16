@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قافلة التاجرات</title>
+<style>
+:root{
+  --bg:#fff7ea; --ink:#3a2814; --muted:#7a6248; --card:#ffffff; --line:#ecd9b8;
+  --accent:#c4621a; --accent-dark:#9c4b10; --accent-ink:#ffffff;
+  --ok:#1d7a3e; --ok-bg:#e2f4e7; --bad:#a3302a; --bad-bg:#fbe5e2; --hint-bg:#fff1d6;
+  --gold:#d79f00; --silver:#8f9aa6; --sel:#ffe2bf;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;
+  background:var(--bg); color:var(--ink);
+  font-size:clamp(17px,2vw,28px); line-height:1.45;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+input{font-family:inherit;font-size:inherit}
+.wrap{max-width:1400px;margin:0 auto;padding:clamp(10px,2vw,28px) 16px 28px;display:flex;flex-direction:column;gap:clamp(10px,1.6vw,22px);min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-weight:700;font-size:1.05em}
+.tools{display:flex;gap:8px}
+.icon-btn{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:.25em .6em;min-height:48px}
+
+/* track */
+.track{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:10px 8px;position:relative}
+.station{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;font-size:.62em;color:var(--muted);position:relative}
+.station .dot{width:clamp(40px,5vw,70px);height:clamp(40px,5vw,70px);border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#fffaf0,#f3e2c4);border:3px dashed var(--line);overflow:hidden;box-shadow:inset 0 -4px 8px rgba(120,80,30,.12)}
+.station .dot svg{width:92%;height:92%}
+.station.done .dot{border-style:solid;border-color:var(--gold);background:#fff4cf}
+.station.silver .dot{border-style:solid;border-color:var(--silver);background:#eef1f4}
+.station.here .dot{border-style:solid;border-color:var(--accent);background:var(--sel)}
+.station .lbl{line-height:1.25}
+.camel{position:absolute;top:-1.6em;width:clamp(34px,4.4vw,60px);animation:hop .6s ease;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+.camel svg{width:100%;height:auto;display:block}
+.track::before{content:"";position:absolute;right:6%;left:6%;top:calc(10px + clamp(20px,2.5vw,35px));border-top:4px dotted #d9b77f;z-index:0}
+.station{z-index:1}
+.qgrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(170px,24vw,320px);gap:clamp(10px,2vw,24px);align-items:start}
+.qart{border-radius:20px;overflow:hidden;border:3px solid var(--line);box-shadow:0 6px 16px rgba(80,50,20,.12);aspect-ratio:5/4;background:#fff3d6}
+.qart svg{width:100%;height:100%;display:block}
+@keyframes hop{0%{transform:translateY(8px) scale(.8)}60%{transform:translateY(-6px)}100%{transform:none}}
+
+/* cards */
+.card{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:clamp(14px,2.4vw,34px)}
+.qnum{color:var(--accent-dark);font-weight:700;font-size:.8em}
+.qtext{font-size:1.35em;font-weight:700;margin:.15em 0 .5em}
+.opts{display:grid;gap:clamp(8px,1.2vw,16px)}
+.opt{display:flex;align-items:center;gap:.6em;text-align:right;background:#fffaf2;border:3px solid var(--line);border-radius:18px;padding:.35em .7em;min-height:58px;font-size:1.08em;transition:transform .1s}
+.opt:active{transform:scale(.99)}
+.opt .letter{flex:0 0 auto;width:1.9em;height:1.9em;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.opt .mark{margin-inline-start:auto;font-weight:700;font-size:1.1em}
+.opt.selected{background:var(--sel);border-color:var(--accent)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.opt[disabled]{cursor:default}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.goal{margin-top:.8em;padding-top:.5em;border-top:2px dashed var(--line);color:var(--muted);font-size:.78em}
+.feedback{min-height:2.2em;border-radius:16px;padding:.5em .8em;font-weight:700;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:var(--ok-bg);color:var(--ok)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.feedback.hint{background:var(--hint-bg);color:var(--accent-dark)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:18px;padding:.45em 1.2em;min-height:60px;font-weight:700;font-size:1.05em}
+.btn:hover{background:var(--accent-dark)}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.btn[hidden]{display:none}
+.stars-pick{display:none;gap:8px;flex-wrap:wrap;align-items:center}
+.stars-pick.show{display:flex}
+.chip{background:#fffaf2;border:2px solid var(--line);border-radius:14px;padding:.25em .7em;min-height:52px;font-size:.85em}
+.chip:hover{border-color:var(--gold)}
+.timer{font-weight:700;color:var(--accent-dark);min-width:3.5em;text-align:center}
+
+/* start & end */
+.hero{text-align:center}
+.hero h1{font-size:2em;margin:.2em 0}
+.hero p{margin:.2em 0 .8em;color:var(--muted)}
+.names{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:.6em 0 1em}
+.names label{display:flex;flex-direction:column;font-size:.7em;color:var(--muted);text-align:right}
+.names input{border:2px solid var(--line);border-radius:12px;padding:.35em .5em;font-size:1.3em;color:var(--ink);background:#fffaf2}
+.book{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:.6em 0}
+.stamp{width:clamp(86px,10vw,130px);height:clamp(86px,10vw,130px);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.55em;font-weight:700;border:5px double var(--gold);color:var(--accent-dark);background:radial-gradient(circle,#fff8dc 55%,#f6dd8a);transform:rotate(-8deg);box-shadow:0 3px 8px rgba(120,80,0,.25);text-align:center;line-height:1.2;padding:4px}
+.stamp:nth-child(even){transform:rotate(6deg)}
+.stamp.silver{border-color:var(--silver);background:radial-gradient(circle,#f7f9fb 55%,#d5dde4);color:#4e5862}
+.stamp svg{width:58%;height:auto;display:block}
+.board{display:grid;gap:8px;max-width:760px;margin:0 auto}
+.board div{display:flex;justify-content:space-between;background:#fffaf2;border:2px solid var(--line);border-radius:14px;padding:.3em .8em}
+.small{font-size:.7em;color:var(--muted)}
+.hidden{display:none !important}
+.noscript{background:#fff1d6;color:#8a4d00;text-align:center;padding:.5em;font-weight:700;border-bottom:2px solid #f0c27a}
+@media (prefers-reduced-motion:reduce){.camel,.shake{animation:none}}
+@media (max-width:700px){
+  .qgrid{grid-template-columns:1fr}
+  .qart{aspect-ratio:auto;height:110px;order:-1}
+}
+@media (max-width:600px){
+  .station .lbl{font-size:.85em}
+  .qtext{font-size:1.2em}
+  .opt{font-size:1em}
+}
+</style>
+</head>
+<body>
+<noscript><div class="noscript">افتحي الملف في متصفح Chrome أو Edge</div></noscript>
+
+<!-- drawn art: everything is drawn in code and works offline -->
+<svg aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+<defs>
+  <linearGradient id="gCamel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ecc287"/><stop offset="1" stop-color="#b27a3a"/></linearGradient>
+  <linearGradient id="gCamelLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c99556"/><stop offset="1" stop-color="#8a5a27"/></linearGradient>
+  <linearGradient id="gSkyWarm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a8"/><stop offset="1" stop-color="#fff6e2"/></linearGradient>
+  <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3f7"/><stop offset="1" stop-color="#e6f5ff"/></linearGradient>
+  <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a8dcc"/><stop offset="1" stop-color="#0d4a7e"/></linearGradient>
+  <linearGradient id="gHull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22406b"/><stop offset=".55" stop-color="#16304f"/><stop offset=".56" stop-color="#b8382b"/><stop offset="1" stop-color="#7d241b"/></linearGradient>
+  <linearGradient id="gSteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f6c344"/><stop offset="1" stop-color="#d99a14"/></linearGradient>
+  <linearGradient id="gMud" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2b77d"/><stop offset="1" stop-color="#c08a4c"/></linearGradient>
+  <linearGradient id="gSand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3d39c"/><stop offset="1" stop-color="#dcac66"/></linearGradient>
+  <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf9f2"/><stop offset="1" stop-color="#e9dfcd"/></linearGradient>
+  <linearGradient id="gPave" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7dbe0"/><stop offset="1" stop-color="#b3bac2"/></linearGradient>
+  <pattern id="pCorr" width="4" height="8" patternUnits="userSpaceOnUse"><rect width="2" height="8" fill="#000" opacity=".16"/></pattern>
+
+  <symbol id="camel" viewBox="0 0 120 100">
+    <ellipse cx="68" cy="95" rx="40" ry="4" fill="#000" opacity=".15"/>
+    <path d="M54 66 L55 80 L52 93 L56 93 L60 80 L59 66Z" fill="url(#gCamelLeg)" opacity=".8"/>
+    <path d="M90 64 L92 80 L89 93 L93 93 L97 80 L95 64Z" fill="url(#gCamelLeg)" opacity=".8"/>
+    <path d="M44 66 L42 80 L45 93 L49 93 L47 80 L49 66Z" fill="url(#gCamelLeg)"/>
+    <path d="M80 66 L79 80 L82 93 L86 93 L85 80 L86 66Z" fill="url(#gCamelLeg)"/>
+    <path d="M100 50 C106 54 106 62 103 68" stroke="#9a6630" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M38 52 C38 40 48 36 56 37 C60 22 76 20 82 36 C92 36 102 44 101 55 C100 66 90 70 80 70 L50 70 C42 70 38 62 38 52Z" fill="url(#gCamel)"/>
+    <path d="M42 54 C34 52 28 44 25 34 C23 26 20 21 15 20 L9 20 C5 20 3 23 4 26 C5 29 9 30 13 30 C16 31 18 36 20 44 C23 54 30 60 40 61Z" fill="url(#gCamel)"/>
+    <path d="M17 18 l2 -6 l2.5 6z" fill="#a8723a"/>
+    <circle cx="13" cy="23" r="1.4" fill="#3a2410"/>
+    <path d="M4 26 q3 2 6 1" stroke="#7a4b1c" stroke-width="1" fill="none"/>
+    <path d="M44 44 h12 v18 a4 4 0 0 1 -4 4 h-4 a4 4 0 0 1 -4 -4z" fill="#4f8a4a"/>
+    <path d="M44 50 h12 M44 56 h12" stroke="#f1d27a" stroke-width="1.5"/>
+    <path d="M82 44 h12 v18 a4 4 0 0 1 -4 4 h-4 a4 4 0 0 1 -4 -4z" fill="#3b6fa3"/>
+    <path d="M82 50 h12 M82 56 h12" stroke="#f1d27a" stroke-width="1.5"/>
+    <path d="M52 40 C58 27 76 25 82 40 L84 53 L50 53Z" fill="#b23a2e"/>
+    <path d="M51 47 H84" stroke="#f4c542" stroke-width="2"/>
+    <path d="M50 51 H85" stroke="#2d6a4f" stroke-width="2"/>
+    <g fill="#f4c542"><circle cx="52" cy="55" r="1.6"/><circle cx="58" cy="55" r="1.6"/><circle cx="64" cy="55" r="1.6"/><circle cx="70" cy="55" r="1.6"/><circle cx="76" cy="55" r="1.6"/><circle cx="82" cy="55" r="1.6"/></g>
+    <path d="M60 33 C65 25 73 26 77 33" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <symbol id="ship" viewBox="0 0 300 120">
+    <g>
+      <rect x="40" y="48" width="26" height="14" fill="#d9534f"/><rect x="67" y="48" width="26" height="14" fill="#1f6fa8"/><rect x="94" y="48" width="26" height="14" fill="#f0ad4e"/><rect x="121" y="48" width="26" height="14" fill="#2e8b57"/><rect x="148" y="48" width="26" height="14" fill="#6c5ce7"/><rect x="175" y="48" width="26" height="14" fill="#e67e22"/><rect x="202" y="48" width="26" height="14" fill="#16a085"/>
+      <rect x="67" y="34" width="26" height="14" fill="#f0ad4e"/><rect x="94" y="34" width="26" height="14" fill="#d9534f"/><rect x="121" y="34" width="26" height="14" fill="#1f6fa8"/><rect x="148" y="34" width="26" height="14" fill="#2e8b57"/><rect x="175" y="34" width="26" height="14" fill="#6c5ce7"/>
+      <rect x="40" y="34" width="188" height="28" fill="url(#pCorr)"/>
+    </g>
+    <rect x="232" y="26" width="42" height="40" rx="3" fill="#f4f6f8"/>
+    <rect x="228" y="20" width="50" height="7" rx="2" fill="#d9dee3"/>
+    <g fill="#24527f"><rect x="236" y="32" width="7" height="5" rx="1"/><rect x="246" y="32" width="7" height="5" rx="1"/><rect x="256" y="32" width="7" height="5" rx="1"/><rect x="236" y="44" width="7" height="5" rx="1"/><rect x="246" y="44" width="7" height="5" rx="1"/><rect x="256" y="44" width="7" height="5" rx="1"/></g>
+    <rect x="252" y="6" width="13" height="15" rx="2" fill="#c0392b"/>
+    <rect x="252" y="10" width="13" height="3" fill="#f4f6f8"/>
+    <path d="M4 62 L294 66 L286 98 Q284 106 274 106 H36 Q26 106 20 98 Z" fill="url(#gHull)"/>
+    <path d="M8 72 H289" stroke="#ffffff" stroke-width="2" opacity=".75"/>
+  </symbol>
+
+  <symbol id="crane" viewBox="0 0 120 160">
+    <path d="M28 160 L36 46 M72 160 L64 46 M30 130 L70 130 M32 100 L68 100 M34 72 L66 72 M30 130 L66 100 M70 130 L34 100 M32 100 L64 72 M68 100 L36 72" stroke="url(#gSteel)" stroke-width="5" fill="none"/>
+    <rect x="0" y="36" width="120" height="10" rx="2" fill="url(#gSteel)"/>
+    <path d="M0 36 L50 14 L58 36" stroke="#d99a14" stroke-width="3" fill="none"/>
+    <rect x="40" y="46" width="22" height="16" rx="2" fill="#2f4858"/>
+    <path d="M14 46 V84" stroke="#333" stroke-width="1.5"/>
+    <rect x="2" y="84" width="26" height="14" fill="#2e8b57"/><rect x="2" y="84" width="26" height="14" fill="url(#pCorr)"/>
+  </symbol>
+
+  <symbol id="stStart" viewBox="0 0 100 80">
+    <rect y="62" width="100" height="18" fill="url(#gSand)"/>
+    <ellipse cx="34" cy="66" rx="10" ry="3" fill="#000" opacity=".15"/>
+    <path d="M34 66 V12" stroke="#6e4316" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="34" cy="11" r="3" fill="#f4c542"/>
+    <path d="M35 14 C48 8 58 22 74 16 V40 C58 46 48 32 35 38Z" fill="#c4621a"/>
+    <path d="M35 24 C48 18 58 32 74 26" stroke="#f4c542" stroke-width="2.5" fill="none"/>
+    <path d="M60 66 q8 -6 16 0 M8 72 q10 -6 20 0" stroke="#c99556" stroke-width="2" fill="none"/>
+  </symbol>
+
+  <symbol id="stGate" viewBox="0 0 100 80">
+    <rect y="66" width="100" height="14" fill="url(#gSand)"/>
+    <rect x="12" y="24" width="76" height="44" fill="url(#gMud)"/>
+    <path d="M12 24 L17 16 L22 24 L27 16 L32 24 L37 16 L42 24 L47 16 L52 24 L57 16 L62 24 L67 16 L72 24 L77 16 L82 24 L87 16 L88 24Z" fill="#c9955a"/>
+    <rect x="12" y="40" width="76" height="2.5" fill="#b07a3e"/>
+    <path d="M20 36 l4 -7 l4 7z M72 36 l4 -7 l4 7z" fill="#7a4b1c"/>
+    <path d="M35 68 V46 a15 15 0 0 1 30 0 V68" fill="none" stroke="#f0d4a0" stroke-width="3"/>
+    <path d="M38 68 V46 a12 12 0 0 1 24 0 V68Z" fill="#6b4220"/>
+    <path d="M50 34 V68" stroke="#3d2610" stroke-width="1.5"/>
+    <g fill="#e8c48a"><circle cx="43" cy="50" r="1.2"/><circle cx="43" cy="58" r="1.2"/><circle cx="57" cy="50" r="1.2"/><circle cx="57" cy="58" r="1.2"/><circle cx="47" cy="62" r="1.2"/><circle cx="53" cy="62" r="1.2"/></g>
+    <path d="M12 66 H88" stroke="#a87038" stroke-width="2"/>
+  </symbol>
+
+  <symbol id="stOld" viewBox="0 0 100 80">
+    <rect y="64" width="100" height="16" fill="url(#gSand)"/>
+    <path d="M14 66 L50 14 L86 66Z" fill="#b23a2e"/>
+    <path d="M50 14 L30 66 M50 14 L70 66" stroke="#f1d27a" stroke-width="3"/>
+    <path d="M50 30 L41 66 H59Z" fill="#4a1a14"/>
+    <path d="M50 14 V8" stroke="#6e4316" stroke-width="2"/>
+    <path d="M4 72 q0 -16 9 -16 q9 0 9 16z" fill="#d8b77a"/><path d="M9 58 q4 -3 8 0" stroke="#8a5a26" stroke-width="1.5" fill="none"/>
+    <path d="M78 72 q-6 -9 0 -16 h10 q6 7 0 16z" fill="#a8582c"/><rect x="80" y="52" width="6" height="4" fill="#8a4520"/>
+    <path d="M26 72 q0 -10 6 -10 q6 0 6 10z" fill="#e7c98f"/>
+  </symbol>
+
+  <symbol id="stStore" viewBox="0 0 100 80">
+    <rect y="68" width="100" height="12" fill="url(#gPave)"/>
+    <rect x="10" y="18" width="80" height="50" fill="url(#gWall)" stroke="#cdbfa6"/>
+    <rect x="10" y="18" width="80" height="9" fill="#1f6fa8"/>
+    <g><rect x="8" y="27" width="10.5" height="8" fill="#c4621a"/><rect x="18.5" y="27" width="10.5" height="8" fill="#fff"/><rect x="29" y="27" width="10.5" height="8" fill="#c4621a"/><rect x="39.5" y="27" width="10.5" height="8" fill="#fff"/><rect x="50" y="27" width="10.5" height="8" fill="#c4621a"/><rect x="60.5" y="27" width="10.5" height="8" fill="#fff"/><rect x="71" y="27" width="10.5" height="8" fill="#c4621a"/><rect x="81.5" y="27" width="10.5" height="8" fill="#fff"/></g>
+    <g fill="#c4621a"><circle cx="13" cy="35" r="5"/><circle cx="34" cy="35" r="5"/><circle cx="55" cy="35" r="5"/><circle cx="76" cy="35" r="5"/></g>
+    <g fill="#fff"><circle cx="23.5" cy="35" r="5"/><circle cx="44.5" cy="35" r="5"/><circle cx="65.5" cy="35" r="5"/><circle cx="86.5" cy="35" r="5"/></g>
+    <rect x="15" y="44" width="42" height="22" fill="#cfe9fb" stroke="#7d93a8"/>
+    <path d="M15 52 H57 M15 59 H57" stroke="#7d93a8"/>
+    <g><rect x="18" y="46" width="5" height="5" fill="#e74c3c"/><rect x="25" y="47" width="5" height="4" fill="#f0ad4e"/><rect x="33" y="46" width="4" height="5" fill="#2e8b57"/><rect x="42" y="47" width="6" height="4" fill="#6c5ce7"/><rect x="19" y="54" width="6" height="4" fill="#1f6fa8"/><rect x="29" y="53" width="4" height="5" fill="#e67e22"/><rect x="38" y="54" width="7" height="4" fill="#16a085"/><rect x="49" y="53" width="5" height="5" fill="#d9534f"/></g>
+    <rect x="63" y="42" width="21" height="26" fill="#9fd3f7" stroke="#557"/>
+    <path d="M73.5 42 V68" stroke="#557"/>
+    <rect x="78" y="10" width="12" height="9" rx="2" fill="#2f4858"/><rect x="80" y="12" width="8" height="3" fill="#9fd3f7"/>
+  </symbol>
+
+  <symbol id="stPort" viewBox="0 0 100 80">
+    <rect width="100" height="58" fill="url(#gSky)" opacity=".0"/>
+    <rect y="56" width="100" height="24" fill="url(#gSea)"/>
+    <rect x="66" y="54" width="34" height="26" fill="#9aa5af"/>
+    <use href="#crane" x="64" y="2" width="36" height="54"/>
+    <use href="#ship" x="0" y="30" width="72" height="30"/>
+    <path d="M2 70 q6 -4 12 0 t12 0 t12 0 t12 0" stroke="#fff" stroke-opacity=".6" stroke-width="1.5" fill="none"/>
+  </symbol>
+
+  <symbol id="stStall" viewBox="0 0 100 80">
+    <rect y="66" width="100" height="14" fill="url(#gSand)"/>
+    <path d="M84 66 C84 46 86 36 88 28" stroke="#8a5a26" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M88 28 C80 20 72 22 68 26 M88 28 C84 18 76 14 72 16 M88 28 C92 18 98 16 100 18 M88 28 C96 24 100 28 100 32 M88 28 C86 22 88 14 92 12" stroke="#3f7d3a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M14 66 V22 M70 66 V22" stroke="#7a4b1c" stroke-width="3"/>
+    <g><rect x="10" y="16" width="8" height="10" fill="#2d6a4f"/><rect x="18" y="16" width="8" height="10" fill="#fff"/><rect x="26" y="16" width="8" height="10" fill="#2d6a4f"/><rect x="34" y="16" width="8" height="10" fill="#fff"/><rect x="42" y="16" width="8" height="10" fill="#2d6a4f"/><rect x="50" y="16" width="8" height="10" fill="#fff"/><rect x="58" y="16" width="8" height="10" fill="#2d6a4f"/><rect x="66" y="16" width="8" height="10" fill="#fff"/></g>
+    <g fill="#2d6a4f"><circle cx="14" cy="26" r="4"/><circle cx="30" cy="26" r="4"/><circle cx="46" cy="26" r="4"/><circle cx="62" cy="26" r="4"/></g>
+    <g fill="#fff"><circle cx="22" cy="26" r="4"/><circle cx="38" cy="26" r="4"/><circle cx="54" cy="26" r="4"/><circle cx="70" cy="26" r="4"/></g>
+    <rect x="10" y="46" width="64" height="6" fill="#8a5a26"/>
+    <rect x="12" y="52" width="60" height="14" fill="#2d6a4f"/>
+    <path d="M12 58 H72" stroke="#f4c542" stroke-width="1.5"/>
+    <path d="M18 46 q8 -12 16 0z" fill="#6b3a1a"/><g fill="#8b4a22"><circle cx="22" cy="42" r="2"/><circle cx="26" cy="40" r="2"/><circle cx="30" cy="42" r="2"/></g>
+    <rect x="40" y="36" width="9" height="10" rx="2" fill="#f2f6f9" stroke="#bbb"/>
+    <rect x="52" y="38" width="12" height="8" rx="2" fill="#e8b26a" stroke="#b97f3c"/>
+  </symbol>
+</defs>
+</svg>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">🐪 قافلة التاجرات</div>
+    <div class="tools">
+      <button class="icon-btn" id="timerBtn" title="مؤقت 30 ثانية" aria-label="مؤقت 30 ثانية">⏱️ <span class="timer" id="timer">30</span></button>
+      <button class="icon-btn" id="soundBtn" aria-label="الصوت">🔇</button>
+    </div>
+  </div>
+
+  <div class="track" id="track" aria-label="طريق القافلة"></div>
+
+  <!-- start -->
+  <section class="card hero" id="startScreen">
+    <svg viewBox="0 0 120 100" style="width:clamp(90px,12vw,150px);height:auto" aria-hidden="true"><use href="#camel"/></svg>
+    <h1>قافلة التاجرات</h1>
+    <p>من السوق القديم إلى بسطة صناعة سعودية</p>
+    <p class="small">خمس محطات، وكل محطة سؤال يقيس هدفاً من أهدافنا. كل إجابة صحيحة تمشّي القافلة محطة وتضع ختماً في دفتر التاجرة.</p>
+    <div class="names" id="names"></div>
+    <button class="btn" id="startBtn">ابدئي الرحلة</button>
+  </section>
+
+  <!-- question -->
+  <section class="card hidden" id="qScreen" aria-live="polite">
+    <div class="qgrid">
+      <div>
+        <div class="qnum" id="qnum"></div>
+        <div class="qtext" id="qtext"></div>
+        <div class="opts" id="opts"></div>
+        <div class="goal" id="goal"></div>
+      </div>
+      <div class="qart" id="qart" aria-hidden="true"></div>
+    </div>
+  </section>
+  <div class="feedback" id="feedback" role="status"></div>
+  <div class="row hidden" id="qControls">
+    <button class="btn" id="confirmBtn" hidden>تأكيد</button>
+    <div class="stars-pick" id="starsPick"><span>⭐ أي بسطة أجابت؟</span></div>
+    <button class="btn" id="nextBtn" hidden>المحطة التالية ⬅️</button>
+  </div>
+
+  <!-- end -->
+  <section class="card hero hidden" id="endScreen">
+    <h1>وصلت القافلة! 🎉</h1>
+    <p>أنتنّ تاجرات ماهرات</p>
+    <div class="small">دفتر التاجرة</div>
+    <div class="book" id="book"></div>
+    <div class="small">نجوم البسطات (تُنقل إلى لوحة نجمات الحصة)</div>
+    <div class="board" id="board"></div>
+    <p></p>
+    <button class="btn ghost" id="againBtn">إعادة الرحلة</button>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var LETTERS = ["أ","ب","ج"];
+  var STATIONS = [
+    {sym:"stStart", name:"البداية"},
+    {sym:"stGate", name:"باب السوق"},
+    {sym:"stOld", name:"السوق القديم"},
+    {sym:"stStore", name:"متجر اليوم"},
+    {sym:"stPort", name:"الميناء"},
+    {sym:"stStall", name:"بسطة صناعة سعودية"}
+  ];
+  /* الأسئلة وخياراتها والأهداف حرفياً من بصيرة (ش35) */
+  var Q = [
+    {text:"التبادل التجاري هو:",
+     options:["تداول السلع والخدمات بين الناس","تقديم الهدايا","إعادة كتاب مستعار"],
+     correct:[0], multi:false,
+     goal:"🎯 الهدف 1: توضّح مفهوم التبادل التجاري.",
+     why:"التبادل التجاري هو تداول السلع والخدمات بين الناس (ص99).",
+     hints:{1:"الهدية تُعطى بلا مقابل… هل فيها أخذ وعطاء؟",2:"إعادة الكتاب إرجاعه لصاحبه، لا بيع فيه ولا شراء."}},
+    {text:"قديماً اشترى الناس الأقط مقابل التمر. هذه الطريقة اسمها:",
+     options:["التحويل البنكي","المقايضة","الدفع نقداً"],
+     correct:[1], multi:false,
+     goal:"🎯 الهدف 2: تقارن بين شراء السلع قديماً بالمقايضة وحديثاً بالمال.",
+     why:"المقايضة: سلعة مقابل سلعة، مثل الأقط مقابل التمر (ص100). مثل سوقنا بلا نقود!",
+     hints:{0:"التحويل البنكي من وسائل اليوم… فكيف اشترى الناس قبل ظهور العملات؟",2:"الدفع نقداً يحتاج عملة… والأقط هنا مقابل التمر!"}},
+    {text:"اختاري وسيلتين من وسائل الدفع الحديثة:",
+     options:["البطاقة البنكية","السمن مقابل القمح","نقداً"],
+     correct:[0,2], multi:true,
+     goal:"🎯 الهدف 3: تذكر وسائل الدفع الحديثة.",
+     why:"البطاقة البنكية والدفع نقداً من وسائل الدفع اليوم (ص100، ص101).",
+     partial:"أحسنتِ! وبقيت وسيلة أخرى في الخيارات…",
+     hints:{1:"السمن مقابل القمح مقايضة من الماضي (ص100)."}},
+    {text:"بيع المملكة للتمور والنفط إلى دول أخرى فائدته:",
+     options:["نبيع إنتاجنا الوطني","نحصل على فواكه","لا فائدة"],
+     correct:[0], multi:false,
+     goal:"🎯 الهدف 4: تستنتج فوائد التبادل التجاري بين الدول.",
+     why:"من فوائد التبادل التجاري أن نبيع إنتاجنا الوطني، مثل النفط ومشتقاته والتمور (ص101).",
+     hints:{1:"الفواكه نحصل عليها حين نشتري من دول أخرى… لكن هنا وطننا هو الذي يبيع.",2:"تذكّري أن الدول تعتمد على التبادل التجاري لتنمية اقتصادها (ص101)."}},
+    {text:"والد أحمد يختار المنتج المصنوع في المملكة. لماذا؟",
+     options:["دعماً لاقتصاد وطنه","لأنه بلا ثمن","لأنه يقايض به"],
+     correct:[0], multi:false,
+     goal:"🌴 الهدف القيمي: تعتز بالمنتج الوطني وتحرص على اختياره دعماً لاقتصاد وطنها.",
+     why:"«أختار الشيء الذي صُنع في وطني دعماً لاقتصاده» (ص102). وأنتِ أيضاً تاجرة تحب وطنها 🌴",
+     hints:{1:"المنتج الوطني نشتريه بالمال مثل غيره.",2:"والد أحمد يتسوق ويشتري اليوم، لا يقايض."}}
+  ];
+  var DEFAULT_GROUPS = ["محفظة التاجرة","رفّ أمس ورفّ اليوم","مفتّشة السوق","لافتة بسطتي"];
+
+  var $ = function(id){return document.getElementById(id);};
+  var state;
+  function reset(){
+    state = {q:-1, attempts:0, resolved:false, selected:[], stamps:[], groups:[], stars:[0,0,0,0], starGiven:false};
+  }
+  reset();
+
+  /* sound (off by default, generated, no files) */
+  var soundOn = false, actx = null;
+  function beep(ok){
+    if(!soundOn) return;
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = ok ? 660 : 220;
+      g.gain.setValueAtTime(0.15, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.35);
+      o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + 0.36);
+    }catch(e){}
+  }
+  $("soundBtn").addEventListener("click", function(){
+    soundOn = !soundOn; this.textContent = soundOn ? "🔊" : "🔇";
+  });
+
+  /* timer (optional) */
+  var tLeft = 30, tId = null;
+  function stopTimer(){ if(tId){clearInterval(tId); tId=null;} tLeft=30; $("timer").textContent="30"; }
+  $("timerBtn").addEventListener("click", function(){
+    if(tId){ stopTimer(); return; }
+    tLeft = 30; $("timer").textContent = tLeft;
+    tId = setInterval(function(){
+      tLeft--; $("timer").textContent = tLeft;
+      if(tLeft<=0){ clearInterval(tId); tId=null; $("timer").textContent="⏰"; beep(false); }
+    },1000);
+  });
+
+  function icon(sym){ return '<svg viewBox="0 0 100 80" aria-hidden="true"><use href="#'+sym+'"/></svg>'; }
+  function scene(i){
+    var sky = (i===4) ? "url(#gSky)" : "url(#gSkyWarm)";
+    var extra = "";
+    if(i===2) extra = '<use href="#camel" x="2" y="40" width="34" height="28"/>';
+    if(i===4) extra = '<g fill="#fff" opacity=".9"><ellipse cx="20" cy="14" rx="12" ry="4"/><ellipse cx="50" cy="10" rx="9" ry="3"/></g>';
+    return '<svg viewBox="0 0 100 80" preserveAspectRatio="xMidYMid meet"><rect width="100" height="80" fill="'+sky+'"/>'+
+      (i!==4 ? '<circle cx="86" cy="12" r="8" fill="#ffd166" opacity=".85"/>' : '')+
+      '<use href="#'+STATIONS[i].sym+'" width="100" height="80"/>'+extra+'</svg>';
+  }
+  function renderTrack(){
+    var t = $("track"); t.innerHTML = "";
+    STATIONS.forEach(function(s, i){
+      var d = document.createElement("div");
+      d.className = "station";
+      var pos = state.q < 0 ? 0 : state.stamps.length;
+      if(i>0 && state.stamps[i-1]==="gold") d.classList.add("done");
+      if(i>0 && state.stamps[i-1]==="silver") d.classList.add("silver");
+      if(state.q>=0 && i===state.q+1 && !state.resolved) d.classList.add("here");
+      d.innerHTML = '<div class="dot">'+icon(s.sym)+'</div><div class="lbl">'+s.name+'</div>';
+      if(i===pos){ var c=document.createElement("div"); c.className="camel"; c.innerHTML='<svg viewBox="0 0 120 100"><use href="#camel"/></svg>'; c.setAttribute("aria-label","القافلة هنا"); d.appendChild(c); }
+      t.appendChild(d);
+    });
+  }
+
+  function renderNames(){
+    var n = $("names"); n.innerHTML = "";
+    DEFAULT_GROUPS.forEach(function(g, i){
+      var l = document.createElement("label");
+      l.innerHTML = "بسطة "+(i+1)+'<input type="text" maxlength="30">';
+      l.querySelector("input").value = g;
+      n.appendChild(l);
+    });
+  }
+
+  function show(id){
+    ["startScreen","qScreen","endScreen"].forEach(function(s){ $(s).classList.toggle("hidden", s!==id); });
+    $("qControls").classList.toggle("hidden", id!=="qScreen");
+    if(id!=="qScreen") setFeedback("", "");
+  }
+
+  function setFeedback(msg, kind){
+    var f = $("feedback");
+    f.className = "feedback" + (msg ? " show "+kind : "");
+    f.textContent = msg;
+    if(msg){ setTimeout(function(){ var t=$("qControls"); (t.classList.contains("hidden")?f:t).scrollIntoView({block:"nearest",behavior:"smooth"}); },30); }
+  }
+
+  function loadQ(){
+    var q = Q[state.q];
+    state.attempts = 0; state.resolved = false; state.selected = []; state.starGiven = false;
+    stopTimer();
+    $("qnum").textContent = "المحطة "+(state.q+1)+" من 5: "+STATIONS[state.q+1].name+" · س"+(state.q+1);
+    $("qart").innerHTML = scene(state.q+1);
+    $("qtext").textContent = q.text + (q.multi ? " (اختاري ثم اضغطي تأكيد)" : "");
+    $("goal").textContent = q.goal;
+    var box = $("opts"); box.innerHTML = "";
+    q.options.forEach(function(o, i){
+      var b = document.createElement("button");
+      b.className = "opt"; b.type = "button"; b.dataset.i = i;
+      b.innerHTML = '<span class="letter">'+LETTERS[i]+'</span><span class="otext"></span><span class="mark"></span>';
+      b.querySelector(".otext").textContent = o;
+      b.addEventListener("click", function(){ choose(i); });
+      box.appendChild(b);
+    });
+    $("confirmBtn").hidden = !q.multi;
+    $("nextBtn").hidden = true;
+    $("nextBtn").textContent = state.q === Q.length-1 ? "إلى نهاية الرحلة 🎉" : "المحطة التالية ⬅️";
+    $("starsPick").classList.remove("show");
+    setFeedback("", "");
+    renderTrack();
+  }
+
+  function optBtn(i){ return $("opts").querySelector('[data-i="'+i+'"]'); }
+
+  function choose(i){
+    if(state.resolved) return;
+    var q = Q[state.q];
+    if(q.multi){
+      var k = state.selected.indexOf(i);
+      if(k>=0) state.selected.splice(k,1); else state.selected.push(i);
+      optBtn(i).classList.toggle("selected", k<0);
+      setFeedback("", "");
+      return;
+    }
+    judge([i]);
+  }
+
+  function sameSet(a,b){ if(a.length!==b.length) return false; for(var i=0;i<a.length;i++){ if(b.indexOf(a[i])<0) return false; } return true; }
+
+  function judge(sel){
+    var q = Q[state.q];
+    if(sel.length===0){ setFeedback("اختاري خياراً أولاً.", "hint"); return; }
+    var wrong = sel.filter(function(i){ return q.correct.indexOf(i)<0; });
+    if(wrong.length===0 && sameSet(sel, q.correct)){ resolve(true); return; }
+    if(wrong.length===0){ setFeedback(q.partial || "أحسنتِ! وبقي شيء آخر…", "hint"); beep(true); return; }
+    /* wrong attempt */
+    state.attempts++;
+    beep(false);
+    wrong.forEach(function(i){ var b=optBtn(i); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); });
+    if(state.attempts>=2){ resolve(false); return; }
+    var h = q.hints[wrong[0]] || "فكّري مرة أخرى.";
+    setFeedback("✘ حاولي مرة أخرى: "+h, "bad");
+    if(q.multi){ state.selected=[]; Array.prototype.forEach.call($("opts").children, function(b){ b.classList.remove("selected"); }); }
+  }
+
+  function resolve(ok){
+    var q = Q[state.q];
+    state.resolved = true;
+    stopTimer();
+    Array.prototype.forEach.call($("opts").children, function(b){
+      var i = +b.dataset.i; b.disabled = true; b.classList.remove("selected");
+      if(q.correct.indexOf(i)>=0){ b.classList.add("right"); b.querySelector(".mark").textContent="✔"; }
+    });
+    if(ok){
+      state.stamps.push("gold"); beep(true);
+      setFeedback("✔ صحيح! "+q.why, "ok");
+      buildStars();
+    }else{
+      state.stamps.push("silver");
+      var ans = q.correct.map(function(i){ return LETTERS[i]+") "+q.options[i]; }).join(" و ");
+      setFeedback("الإجابة الصحيحة: "+ans+". "+q.why, "ok");
+    }
+    $("confirmBtn").hidden = true;
+    $("nextBtn").hidden = false;
+    renderTrack();
+  }
+
+  function buildStars(){
+    var p = $("starsPick");
+    p.innerHTML = "<span>⭐ أي بسطة أجابت؟</span>";
+    state.groups.forEach(function(g, i){
+      var c = document.createElement("button"); c.className="chip"; c.type="button"; c.textContent = g;
+      c.addEventListener("click", function(){
+        if(state.starGiven) return;
+        state.stars[i]++; state.starGiven = true;
+        p.innerHTML = "<span>⭐ نجمة لبسطة «"+escapeHtml(g)+"»</span>";
+      });
+      p.appendChild(c);
+    });
+    p.classList.add("show");
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function next(){
+    if(!state.resolved) return;
+    if(state.q < Q.length-1){ state.q++; loadQ(); }
+    else { state.q = Q.length; renderEnd(); }
+  }
+
+  function renderEnd(){
+    show("endScreen");
+    var b = $("book"); b.innerHTML = "";
+    state.stamps.forEach(function(s, i){
+      var d = document.createElement("div");
+      d.className = "stamp" + (s==="silver" ? " silver" : "");
+      d.innerHTML = icon(STATIONS[i+1].sym)+"<span>"+STATIONS[i+1].name+"</span>"+(s==="silver" ? "<span>فضي</span>" : "<span>⭐</span>");
+      b.appendChild(d);
+    });
+    var bd = $("board"); bd.innerHTML = "";
+    state.groups.map(function(g,i){ return {g:g, s:state.stars[i]}; })
+      .sort(function(a,b){ return b.s-a.s; })
+      .forEach(function(r){
+        var d = document.createElement("div");
+        d.innerHTML = "<span></span><strong></strong>";
+        d.firstChild.textContent = r.g;
+        d.lastChild.textContent = r.s ? "⭐".repeat(r.s) : "—";
+        bd.appendChild(d);
+      });
+    state.stamps.length = Math.min(state.stamps.length, 5);
+    renderTrackEnd();
+  }
+  function renderTrackEnd(){ state.resolved = true; renderTrack(); }
+
+  $("startBtn").addEventListener("click", function(){
+    var inputs = $("names").querySelectorAll("input");
+    state.groups = Array.prototype.map.call(inputs, function(inp, i){ return inp.value.trim() || ("بسطة "+(i+1)); });
+    state.q = 0; show("qScreen"); loadQ();
+  });
+  $("confirmBtn").addEventListener("click", function(){ judge(state.selected.slice()); });
+  $("nextBtn").addEventListener("click", next);
+  $("againBtn").addEventListener("click", function(){
+    var g = state.groups; reset(); state.groups = g; show("startScreen"); renderTrack();
+  });
+
+  /* teacher shortcuts: 1 2 3, Enter, N */
+  document.addEventListener("keydown", function(e){
+    if(e.target && e.target.tagName==="INPUT") return;
+    if($("qScreen").classList.contains("hidden")) return;
+    var map = {Digit1:0, Digit2:1, Digit3:2, Numpad1:0, Numpad2:1, Numpad3:2};
+    if(e.code in map){ choose(map[e.code]); e.preventDefault(); }
+    else if(e.code==="Enter" || e.code==="NumpadEnter"){ if(Q[state.q] && Q[state.q].multi && !state.resolved){ judge(state.selected.slice()); e.preventDefault(); } }
+    else if(e.code==="KeyN"){ next(); }
+  });
+
+  renderNames(); renderTrack();
+})();
+</script>
+</body>
+</html>
