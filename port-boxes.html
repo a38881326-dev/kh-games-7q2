@@ -96,6 +96,27 @@ h2{font-size:1.3em;margin:0}
 .basket .in{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:auto}
 .basket .in span{background:#fff;border:2px solid var(--ok);border-radius:10px;padding:0 .35em;font-size:.7em}
 
+/* tools, medals, stars */
+.tools{display:flex;gap:8px;align-items:center}
+.icon-btn{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:.15em .55em;min-height:44px}
+.stars-bar{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:#fffbea;border:2px solid #f1d27a;border-radius:16px;padding:.35em .6em}
+.stars-bar.show{display:flex}
+.chip{background:#fff;border:2px solid var(--line);border-radius:14px;padding:.2em .7em;min-height:48px;font-size:.8em}
+.chip:hover{border-color:#d79f00}
+.medals{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:.5em 0}
+.medal{width:clamp(78px,9vw,112px);height:clamp(78px,9vw,112px);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:.55em;font-weight:700;line-height:1.25;border:5px double #d79f00;background:radial-gradient(circle,#fff8dc 55%,#f6dd8a);color:#7a5200;box-shadow:0 3px 8px rgba(120,80,0,.25);padding:4px}
+.medal.silver{border-color:#8f9aa6;background:radial-gradient(circle,#f7f9fb 55%,#d5dde4);color:#4e5862}
+.medal b{font-size:2.1em;display:block}
+.medal span{display:block}
+.board{display:grid;gap:8px;max-width:700px;margin:.4em auto}
+.board div{display:flex;justify-content:space-between;background:#fffaf2;border:2px solid var(--line);border-radius:14px;padding:.25em .8em}
+.ports{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,1vw,14px)}
+.port-opt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.2em;background:#f8fbfe;border:3px solid var(--line);border-radius:18px;padding:.4em;min-height:120px;font-size:.9em}
+.port-opt svg{width:100%;max-width:170px;height:auto}
+.port-opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.port-opt[disabled]{cursor:default}
+@media (max-width:640px){ .ports{grid-template-columns:1fr} .port-opt{flex-direction:row;min-height:0} .port-opt svg{width:90px} }
+
 /* golden */
 .products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .product{border:2px solid var(--line);border-radius:18px;padding:.5em;background:#f8fbfe;display:flex;flex-direction:column;gap:.35em}
@@ -278,16 +299,46 @@ h2{font-size:1.3em;margin:0}
     <rect x="42" y="12" width="12" height="22" rx="3" fill="#f2f6f9" stroke="#cdd8e1"/>
     <path d="M40 60 h0" stroke="#000"/>
   </symbol>
+  <symbol id="portCars" viewBox="0 0 160 100">
+    <rect width="160" height="100" rx="12" fill="url(#gSky)"/>
+    <rect y="74" width="160" height="26" fill="url(#gQuay)"/>
+    <rect x="20" y="30" width="70" height="44" fill="#d5dbe1" stroke="#8d99a6"/>
+    <path d="M20 30 l12 -12 v12 l12 -12 v12 l12 -12 v12 l12 -12 v12" fill="#b9c2cc" stroke="#8d99a6"/>
+    <rect x="96" y="14" width="10" height="60" fill="#8d99a6"/><rect x="96" y="14" width="10" height="5" fill="#d9534f"/>
+    <g fill="#6c7a89"><rect x="28" y="42" width="12" height="10"/><rect x="46" y="42" width="12" height="10"/><rect x="64" y="42" width="12" height="10"/></g>
+    <g><path d="M100 84 h36 l-4 -9 h-22z" fill="#1f6fa8"/><rect x="96" y="83" width="44" height="8" rx="3" fill="#1f6fa8"/><circle cx="106" cy="92" r="4" fill="#333"/><circle cx="130" cy="92" r="4" fill="#333"/><rect x="112" y="77" width="16" height="5" fill="#cfe9fb"/></g>
+    <g><path d="M30 84 h30 l-4 -8 h-18z" fill="#d9534f"/><rect x="26" y="83" width="38" height="8" rx="3" fill="#d9534f"/><circle cx="35" cy="92" r="3.6" fill="#333"/><circle cx="55" cy="92" r="3.6" fill="#333"/></g>
+  </symbol>
+  <symbol id="portFruit" viewBox="0 0 160 100">
+    <rect width="160" height="100" rx="12" fill="url(#gSky)"/>
+    <rect y="74" width="160" height="26" fill="#7fbf5a"/>
+    <path d="M40 76 C40 56 42 44 46 34" stroke="#8a5a26" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M46 34 C30 22 18 30 14 34 M46 34 C40 16 26 14 22 16 M46 34 C56 18 70 18 74 22 M46 34 C62 30 70 38 72 42" stroke="#2f8a3a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <g fill="#f4d03f"><path d="M44 40 q-8 6 -4 14 q2 -8 6 -12z"/><path d="M50 40 q-2 8 4 14 q-2 -8 -2 -13z"/></g>
+    <g transform="translate(96 46)"><ellipse cx="14" cy="20" rx="12" ry="16" fill="#e1a21b"/><path d="M4 12 l20 16 M24 12 L4 28 M6 6 l16 26 M22 6 L6 32" stroke="#a86a0e" stroke-width="1.2" opacity=".6"/><path d="M14 4 l-6 -10 l6 5 l2 -8 l2 8 l6 -5z" fill="#2f8a3a"/></g>
+    <circle cx="132" cy="70" r="7" fill="#f39c12"/><circle cx="142" cy="72" r="6" fill="#e67e22"/>
+  </symbol>
+  <symbol id="portDates" viewBox="0 0 160 100">
+    <rect width="160" height="100" rx="12" fill="url(#gSkyWarm)"/>
+    <rect y="74" width="160" height="26" fill="url(#gDuneF)"/>
+    <g><path d="M60 78 C60 56 62 42 66 30" stroke="#8a5a26" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M66 30 C52 20 40 26 36 30 M66 30 C60 14 48 12 44 14 M66 30 C76 14 90 14 94 18 M66 30 C82 26 90 34 92 38 M66 30 C64 22 66 12 70 10" stroke="#3f7d3a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <g fill="#8b4a22"><circle cx="62" cy="38" r="2.6"/><circle cx="66" cy="40" r="2.6"/><circle cx="70" cy="38" r="2.6"/><circle cx="64" cy="43" r="2.6"/><circle cx="68" cy="44" r="2.6"/></g></g>
+    <g><path d="M112 78 C112 62 114 52 116 44" stroke="#8a5a26" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M116 44 C106 36 98 40 96 44 M116 44 C112 32 104 30 100 32 M116 44 C124 32 134 32 136 36 M116 44 C128 40 134 46 134 50" stroke="#3f7d3a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <g fill="#8b4a22"><circle cx="113" cy="50" r="2.2"/><circle cx="117" cy="52" r="2.2"/><circle cx="120" cy="50" r="2.2"/></g></g>
+  </symbol>
 </defs>
 </svg>
 
 <div class="wrap">
   <div class="topbar">
     <div class="brand">🚢 صناديق الميناء</div>
-    <div class="steps" id="steps" aria-label="المشاهد"></div>
+    <div class="tools"><div class="steps" id="steps" aria-label="المشاهد"></div><button class="icon-btn" id="soundBtn" aria-label="الصوت">🔇</button></div>
   </div>
   <main id="stage"></main>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  <div class="stars-bar" id="starsBar"></div>
   <div class="nav">
     <button class="btn outline" id="prevBtn">➡️ السابق</button>
     <button class="btn" id="nextBtn">التالي ⬅️</button>
@@ -362,6 +413,16 @@ h2{font-size:1.3em;margin:0}
         '<g stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none" class="wave"><path d="M0 150 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/></g>'+
         '</svg>';
     },
+    decide:
+      '<svg viewBox="0 0 640 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="سفينتنا أمام ثلاثة موانئ">'+
+      '<rect width="640" height="240" fill="url(#gSky)"/>'+
+      '<rect y="96" width="640" height="144" fill="url(#gSea)"/>'+
+      use("portCars",20,10,170,106)+use("portFruit",235,10,170,106)+use("portDates",450,10,170,106)+
+      '<g fill="#fff" font-family="Arial" font-weight="700" font-size="22" text-anchor="middle"><text x="105" y="140">أ</text><text x="320" y="140">ب</text><text x="535" y="140">ج</text></g>'+
+      '<path d="M320 170 L105 150 M320 170 L320 150 M320 170 L535 150" stroke="#fff" stroke-width="2.5" stroke-dasharray="8 7" opacity=".8"/>'+
+      '<g class="bob">'+use("ship",215,150,210,84)+'</g>'+
+      '<g class="wave" stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none"><path d="M0 228 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/></g>'+
+      '</svg>',
     start:
       '<svg viewBox="0 0 640 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="من القافلة إلى الميناء إلى البيت">'+
       '<defs></defs><rect width="640" height="200" rx="18" fill="url(#gSkyWarm)"/>'+
@@ -405,25 +466,73 @@ h2{font-size:1.3em;margin:0}
      boxes:[{e:"🌴",n:"تمور",to:"sell"},{e:"🛢️",n:"النفط ومشتقاته",to:"sell"}],
      hint:{get:"هذا الصندوق يخرج من وطننا على السفينة… هل نحن نشتريه أم نبيعه؟", use:"هذا من إنتاج وطننا، لا من صناعات دول أخرى… فماذا نفعل به؟"},
      after:"ما فائدة التبادل التجاري لوطننا؟", afterAns:"تعتمد الدول على التبادل التجاري من أجل تنمية اقتصادها (ص101)."},
+    {type:"decide", icon:"🧭", title:"قرار التاجرات: إلى أي ميناء؟", lead:"سفينتنا السعودية محمّلة بالتمور والنفط ومشتقاته. أمامها ثلاثة موانئ في ثلاثة بلدان.",
+     q:"إلى أي ميناء نوجّه سفينتنا لنحصل على ما لا يتوفر لدينا؟",
+     ports:[
+       {sym:"portCars", name:"ميناء أ", desc:"بلد يصنع السيارات 🚗", ok:true,
+        why:"قرار موفق! نبيع تمورنا ونفطنا، ونستفيد من صناعات هذا البلد مثل السيارات (ص101)."},
+       {sym:"portFruit", name:"ميناء ب", desc:"بلد يزرع الفواكه الاستوائية 🍍", ok:true,
+        why:"قرار موفق! نبيع إنتاجنا الوطني، ونحصل على فواكه يصعب توافرها في وطننا (ص101)."},
+       {sym:"portDates", name:"ميناء ج", desc:"بلد ينتج التمور 🌴", ok:false,
+        hint:"هذا البلد ينتج التمور مثلنا… هل نحصل منه على شيء لا يتوفر لدينا؟ وهل يحتاج إلى تمورنا؟"}
+     ],
+     reveal:"الأنسب ميناء أ أو ميناء ب: من فوائد التبادل التجاري أن نبيع إنتاجنا الوطني، ونحصل على منتجات يصعب توافرها في وطننا، ونستفيد من صناعات الدول الأخرى (ص101)."},
     {type:"golden", icon:"🧺", title:"السؤال الذهبي: سلة من الدمام", lead:"منتجات من شركات أغذية سعودية كبرى، وعبواتها الحقيقية في يد معلمتك. اقرئي الملصق: أين صُنعت هذه العبوة؟"},
     {type:"end"}
   ];
 
+  var GROUPS = ["دكّان التاجرات","إذاعة السوق","خريطة السوق المصوّرة","لافتة بسطتي"];
   var cur = 0, done = {}, golden = PRODUCTS.map(function(){ return {}; });
+  var medals = {}, stars = [0,0,0,0], starGiven = {};
+
+  /* sound: off by default, generated (no files) */
+  var soundOn = false, actx = null;
+  function beep(ok){
+    if(!soundOn) return;
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = ok ? 660 : 220;
+      g.gain.setValueAtTime(0.15, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.35);
+      o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + 0.36);
+    }catch(e){}
+  }
+  $("soundBtn").addEventListener("click", function(){ soundOn = !soundOn; this.textContent = soundOn ? "🔊" : "🔇"; });
+
+  /* scene finished: medal (gold first try, silver otherwise) + one star for a stall */
+  function complete(medal){
+    if(!done[cur]){ done[cur]=true; if(medal) medals[cur]=medal; }
+    renderSteps(); $("nextBtn").classList.add("pulse");
+    showStars();
+  }
+  function showStars(){
+    var bar = $("starsBar"); bar.innerHTML = "";
+    if(SCENES[cur].type==="start" || SCENES[cur].type==="end"){ bar.classList.remove("show"); return; }
+    if(starGiven[cur]!==undefined){ bar.innerHTML = "<span>⭐ نجمة لبسطة «"+escapeHtml(GROUPS[starGiven[cur]])+"»</span>"; bar.classList.add("show"); return; }
+    var lab = document.createElement("span"); lab.textContent = "⭐ أي بسطة أجابت؟"; bar.appendChild(lab);
+    GROUPS.forEach(function(g, i){
+      var c = document.createElement("button"); c.type="button"; c.className="chip"; c.textContent = g;
+      c.addEventListener("click", function(){ if(starGiven[cur]!==undefined) return; starGiven[cur]=i; stars[i]++; beep(true); showStars(); });
+      bar.appendChild(c);
+    });
+    bar.classList.add("show");
+  }
   var dragState = {};
 
   function setFeedback(msg, kind){ var f=$("feedback"); f.className="feedback"+(msg?" show "+kind:""); f.textContent=msg; if(msg){ setTimeout(function(){ f.scrollIntoView({block:"nearest",behavior:"smooth"}); },30); } }
 
   function renderSteps(){
     var s=$("steps"); s.innerHTML="";
-    for(var i=1;i<=5;i++){ var d=document.createElement("span"); d.textContent=i; if(i===cur) d.className="on"; else if(done[i]) d.className="done"; s.appendChild(d); }
+    for(var i=1;i<=6;i++){ var d=document.createElement("span"); d.textContent=i; if(i===cur) d.className="on"; else if(done[i]) d.className="done"; s.appendChild(d); }
   }
 
   function go(i){
     cur = Math.max(0, Math.min(SCENES.length-1, i));
     setFeedback("", "");
+    $("starsBar").classList.remove("show");
     render();
-    window.scrollTo(0,0);
+    if(done[cur]) showStars();
   }
 
   function head(sc){
@@ -438,9 +547,10 @@ h2{font-size:1.3em;margin:0}
     $("nextBtn").textContent = cur===0 ? "ابدئي الرحلة ⬅️" : (cur===SCENES.length-2 ? "نهاية الرحلة ⬅️" : "التالي ⬅️");
     $("nextBtn").classList.toggle("pulse", !!done[cur] || cur===0);
     if(sc.type==="start"){
-      st.innerHTML = '<section class="card" style="text-align:center">'+pic(ART.start, "scene-pic")+'<h1>رحلة صناديق الميناء</h1><p class="lead">سوقنا يكبر ويصير بين الدول! نتبع سلة التاجرة الصغيرة من القافلة القديمة إلى '+PORT+'، ثم إلى بيتها في الدمام.</p><p class="small">خمسة مشاهد · الهدف 4: تستنتج فوائد التبادل التجاري بين الدول.</p></section>';
+      st.innerHTML = '<section class="card" style="text-align:center">'+pic(ART.start, "scene-pic")+'<h1>رحلة صناديق الميناء</h1><p class="lead">سوقنا يكبر ويصير بين الدول! نتبع سلة التاجرة الصغيرة من القافلة القديمة إلى '+PORT+'، ثم إلى بيتها في الدمام.</p><p class="small">ستة مشاهد · الهدف 4: تستنتج فوائد التبادل التجاري بين الدول.</p></section>';
     } else if(sc.type==="mcq"){ renderMcq(sc, st); }
     else if(sc.type==="drag"){ renderDrag(sc, st); }
+    else if(sc.type==="decide"){ renderDecide(sc, st); }
     else if(sc.type==="golden"){ renderGolden(sc, st); }
     else { renderEnd(st); }
   }
@@ -460,16 +570,16 @@ h2{font-size:1.3em;margin:0}
     if(state.resolved){ finish(); setFeedback("✔ "+sc.why, "ok"); }
     function pick(i){
       if(state.resolved) return;
-      if(i===sc.correct){ finish(); setFeedback("✔ صحيح! "+sc.why, "ok"); return; }
-      state.attempts++;
+      if(i===sc.correct){ beep(true); finish(); setFeedback("✔ صحيح! "+sc.why, "ok"); return; }
+      state.attempts++; beep(false);
       var b=box.children[i]; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake");
       if(state.attempts>=2){ finish(); setFeedback("الإجابة الصحيحة: "+LETTERS[sc.correct]+") "+sc.options[sc.correct]+". "+sc.why, "ok"); return; }
       setFeedback("✘ حاولي مرة أخرى: "+(sc.hints[i]||"فكّري مرة أخرى."), "bad");
     }
     function finish(){
-      state.resolved=true; done[cur]=true;
+      state.resolved=true;
       Array.prototype.forEach.call(box.children,function(b){ b.disabled=true; if(+b.dataset.i===sc.correct){ b.classList.add("right"); b.querySelector(".mark").textContent="✔"; } });
-      renderSteps(); $("nextBtn").classList.add("pulse");
+      complete(state.attempts ? "silver" : "gold");
     }
   }
 
@@ -511,11 +621,11 @@ h2{font-size:1.3em;margin:0}
       if(!el) return;
       el.classList.remove("picked"); picked=null;
       if(bid===bx.to){
-        ds.placed[i]=true; el.remove(); addToBasket(bx);
+        ds.placed[i]=true; el.remove(); addToBasket(bx); beep(true);
         setFeedback("✔ صحيح! "+WHY[bx.to], "ok");
         checkComplete(); return;
       }
-      ds.tries[i]=(ds.tries[i]||0)+1;
+      ds.tries[i]=(ds.tries[i]||0)+1; ds.anyWrong=true; beep(false);
       el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
       if(ds.tries[i]>=2){
         ds.placed[i]=true; el.remove(); addToBasket(bx);
@@ -528,7 +638,7 @@ h2{font-size:1.3em;margin:0}
     function checkComplete(){
       var all = sc.boxes.every(function(_,i){ return ds.placed[i]; });
       if(all){
-        done[cur]=true; renderSteps(); $("nextBtn").classList.add("pulse");
+        complete(ds.anyWrong ? "silver" : "gold");
         if(sc.after){ $("after").classList.remove("hidden");
           $("afterBtn").onclick=function(){ var a=$("afterAns"); a.className="feedback show ok"; a.textContent="✔ "+sc.afterAns; };
         }
@@ -619,7 +729,7 @@ h2{font-size:1.3em;margin:0}
         else if(g.origin==="other" && !g.basket){ msg.textContent = p.open ? "جاءنا من بلد آخر… في أي سلة نضعه؟" : "الشركة سعودية، لكن الملصق يقول إن هذه العبوة صُنعت في بلد آخر… في أي سلة نضعها؟"; }
         else if(g.basket){ msg.className="msg ok"; msg.textContent="✔ "+(g.basket==="get" ? "حصلنا عليه من بلد آخر بالتبادل التجاري (ص101)." : "استفدنا من صناعة بلد آخر بالتبادل التجاري (ص101)."); }
         var all = golden.every(function(x, k){ return PRODUCTS[k].open || x.origin==="ksa" || !!x.basket; });
-        if(all){ done[cur]=true; renderSteps(); $("nextBtn").classList.add("pulse"); }
+        if(all){ complete(null); }
       }
       s1.addEventListener("click", function(e){ var a=e.target.closest("button"); if(!a) return; g.origin=a.dataset.a; paint(); });
       s2.addEventListener("click", function(e){ var a=e.target.closest("button"); if(!a) return; g.basket=a.dataset.a; paint(); });
@@ -627,6 +737,36 @@ h2{font-size:1.3em;margin:0}
       paint();
       wrap.appendChild(d);
     });
+  }
+
+  /* ---------- decision scene ---------- */
+  function renderDecide(sc, st){
+    var state = {attempts:0, resolved:!!done[cur]};
+    st.innerHTML = '<section class="card">'+head(sc)+
+      '<div class="pic scene-pic">'+ART.decide+'</div>'+
+      '<div class="q">'+sc.q+'</div><div class="ports" id="ports"></div></section>';
+    var box = $("ports");
+    sc.ports.forEach(function(pt, i){
+      var b = document.createElement("button"); b.type="button"; b.className="port-opt"; b.dataset.i=i;
+      b.innerHTML = '<svg viewBox="0 0 160 100" aria-hidden="true"><use href="#'+pt.sym+'"/></svg><div><strong>'+pt.name+'</strong><div>'+pt.desc+'</div></div>';
+      b.addEventListener("click", function(){ pick(i); });
+      box.appendChild(b);
+    });
+    if(state.resolved){ lock(); setFeedback("✔ "+sc.reveal, "ok"); }
+    function pick(i){
+      if(state.resolved) return;
+      var pt = sc.ports[i];
+      if(pt.ok){ beep(true); lock(); setFeedback("✔ "+pt.why+" والميناء الآخر ("+(i===0 ? "ب" : "أ")+") قرار موفق أيضاً.", "ok"); return; }
+      state.attempts++; beep(false);
+      var b = box.children[i]; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake");
+      if(state.attempts>=2){ lock(); setFeedback(sc.reveal, "ok"); return; }
+      setFeedback("✘ فكّري مرة أخرى: "+pt.hint, "bad");
+    }
+    function lock(){
+      state.resolved = true;
+      Array.prototype.forEach.call(box.children, function(b){ b.disabled=true; if(sc.ports[+b.dataset.i].ok) b.classList.add("right"); });
+      complete(state.attempts ? "silver" : "gold");
+    }
   }
 
   function renderEnd(st){
@@ -637,22 +777,32 @@ h2{font-size:1.3em;margin:0}
       var n = p.open ? (g.name || "منتج من المطبخ") : (p.item+" ("+p.co+")");
       if(g.origin==="ksa") ksa.push("🧺 "+n); else if(g.basket) lists[g.basket].push("🧺 "+n);
     });
-    var html = '<section class="card" style="text-align:center"><h1>انتهت الرحلة! 🎉</h1><p class="lead">تعتمد الدول على التبادل التجاري من أجل تنمية اقتصادها (ص101).</p><div class="summary">';
+    var html = '<section class="card" style="text-align:center"><h1>انتهت الرحلة! 🎉</h1><p class="lead">تعتمد الدول على التبادل التجاري من أجل تنمية اقتصادها (ص101).</p>';
+    html += '<div class="small">أوسمة الرحلة</div><div class="medals">';
+    SCENES.forEach(function(sc, i){
+      if(!medals[i]) return;
+      html += '<div class="medal'+(medals[i]==="silver" ? " silver" : "")+'"><b>'+sc.icon+'</b><span>'+sc.title.split(":")[0]+'</span><span>'+(medals[i]==="silver" ? "فضي" : "⭐ ذهبي")+'</span></div>';
+    });
+    html += '</div><div class="small">نجوم البسطات (تُنقل إلى لوحة نجمات الحصة)</div><div class="board">';
+    GROUPS.map(function(g,i){ return {g:g, s:stars[i]}; }).sort(function(a,b){ return b.s-a.s; }).forEach(function(r){
+      html += '<div><span>'+escapeHtml(r.g)+'</span><strong>'+(r.s ? new Array(r.s+1).join("⭐") : "—")+'</strong></div>';
+    });
+    html += '</div><div class="summary">';
     BASKETS.forEach(function(b){ html += '<div style="background:var(--'+b.cls+')"><svg viewBox="0 0 100 74" width="56" aria-hidden="true"><use href="#basket"/></svg><br><strong>'+b.t+'</strong><div class="small">'+b.s+'</div><div>'+lists[b.id].map(escapeHtml).join("<br>")+'</div></div>'; });
     html += '</div>';
     if(ksa.length) html += '<p><strong>🌴 من سلة الدمام، صناعة سعودية:</strong> '+ksa.map(escapeHtml).join(" · ")+'</p>';
     html += '<p></p><button class="btn outline" id="restart">رحلة جديدة</button></section>';
     st.innerHTML = html;
-    $("restart").onclick=function(){ done={}; dragState={}; golden=PRODUCTS.map(function(){ return {}; }); go(0); };
+    $("restart").onclick=function(){ done={}; dragState={}; medals={}; stars=[0,0,0,0]; starGiven={}; golden=PRODUCTS.map(function(){ return {}; }); go(0); window.scrollTo({top:0, behavior:"smooth"}); };
   }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
-  $("nextBtn").addEventListener("click", function(){ go(cur+1); });
-  $("prevBtn").addEventListener("click", function(){ go(cur-1); });
+  $("nextBtn").addEventListener("click", function(){ go(cur+1); window.scrollTo({top:0, behavior:"smooth"}); });
+  $("prevBtn").addEventListener("click", function(){ go(cur-1); window.scrollTo({top:0, behavior:"smooth"}); });
   document.addEventListener("keydown", function(e){
     if(e.target && e.target.tagName==="INPUT") return;
-    if(e.code==="KeyN" || e.code==="PageDown") go(cur+1);
-    if(e.code==="KeyP" || e.code==="PageUp") go(cur-1);
+    if(e.code==="KeyN" || e.code==="PageDown"){ go(cur+1); window.scrollTo({top:0, behavior:"smooth"}); }
+    if(e.code==="KeyP" || e.code==="PageUp"){ go(cur-1); window.scrollTo({top:0, behavior:"smooth"}); }
   });
   render();
 })();

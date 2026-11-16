@@ -89,6 +89,12 @@ input{font-family:inherit;font-size:inherit}
 .stamp:nth-child(even){transform:rotate(6deg)}
 .stamp.silver{border-color:var(--silver);background:radial-gradient(circle,#f7f9fb 55%,#d5dde4);color:#4e5862}
 .stamp svg{width:58%;height:auto;display:block}
+.stamp span{display:block;margin-top:2px}
+.stamp.bonus{border-color:#c4621a;background:radial-gradient(circle,#fff1e0 55%,#f5c48f)}
+.seg{display:inline;border:0;background:#fff3d6;border-bottom:3px dashed #d9b77f;border-radius:8px;padding:.05em .25em;margin:0 .1em;font-size:1em;line-height:1.9;font-weight:700;color:var(--ink)}
+.seg.picked-wrong{background:var(--bad-bg);border-bottom-color:var(--bad);text-decoration:line-through}
+.seg.fixed{background:var(--ok-bg);border-bottom-color:var(--ok);text-decoration:none}
+.bonus-sentence{font-size:1.25em;margin:.3em 0 .6em;padding:.5em .7em;background:#fffaf2;border:2px solid var(--line);border-radius:16px}
 .board{display:grid;gap:8px;max-width:760px;margin:0 auto}
 .board div{display:flex;justify-content:space-between;background:#fffaf2;border:2px solid var(--line);border-radius:14px;padding:.3em .8em}
 .small{font-size:.7em;color:var(--muted)}
@@ -287,12 +293,26 @@ input{font-family:inherit;font-size:inherit}
     <button class="btn" id="nextBtn" hidden>المحطة التالية ⬅️</button>
   </div>
 
+  <!-- bonus: find the mistake -->
+  <section class="card hidden" id="bonusScreen" aria-live="polite">
+    <div class="qnum">⭐ محطة البونص: اكتشفي الخطأ 🕵️‍♀️</div>
+    <div class="qtext" id="bonusStep">في هذه العبارة خطأ واحد. المسي الجزء الخاطئ:</div>
+    <div class="bonus-sentence" id="bonusSentence"></div>
+    <div class="opts hidden" id="bonusOpts"></div>
+    <div class="goal">🎯 مراجعة الأهداف من ص99 إلى ص102 · تفكير ناقد</div>
+  </section>
+  <div class="row hidden" id="bonusControls">
+    <button class="btn ghost" id="bonusOther">عبارة أخرى 🔄</button>
+    <button class="btn" id="bonusEnd">إلى نهاية الرحلة 🎉</button>
+  </div>
+
   <!-- end -->
   <section class="card hero hidden" id="endScreen">
     <h1>وصلت القافلة! 🎉</h1>
     <p>أنتنّ تاجرات ماهرات</p>
     <div class="small">دفتر التاجرة</div>
     <div class="book" id="book"></div>
+    <div class="book" id="bonusBook"></div>
     <div class="small">نجوم البسطات (تُنقل إلى لوحة نجمات الحصة)</div>
     <div class="board" id="board"></div>
     <p></p>
@@ -346,12 +366,24 @@ input{font-family:inherit;font-size:inherit}
      why:"«أختار الشيء الذي صُنع في وطني دعماً لاقتصاده» (ص102). وأنتِ أيضاً تاجرة تحب وطنها 🌴",
      hints:{1:"المنتج الوطني نشتريه بالمال مثل غيره.",2:"والد أحمد يتسوق ويشتري اليوم، لا يقايض."}}
   ];
-  var DEFAULT_GROUPS = ["محفظة التاجرة","رفّ أمس ورفّ اليوم","مفتّشة السوق","لافتة بسطتي"];
+  var DEFAULT_GROUPS = ["دكّان التاجرات","إذاعة السوق","خريطة السوق المصوّرة","لافتة بسطتي"];
+  /* محطة البونص: عبارات خاطئة من الدرس (ص99 إلى ص102)، مختلفة عن عبارات شريحة «اكتشفي الخطأ» */
+  var BONUS = [
+    {parts:["التبادل التجاري هو ","تقديم الهدايا"," بين الناس."], wrong:1,
+     fixes:["تداول السلع والخدمات","إعادة الكتب المستعارة","تبادل الزيارات"], correct:0,
+     why:"التبادل التجاري: هو تداول السلع والخدمات بين الناس (ص99)."},
+    {parts:["يحرص والد أحمد على شراء السلع المصنّعة في المملكة ","لأنها بلا ثمن","."], wrong:1,
+     fixes:["لأنه يقايض بها","دعماً لاقتصاد وطنه","لأنها تأتي من دول أخرى"], correct:1,
+     why:"«أختار الشيء الذي صُنع في وطني دعماً لاقتصاده» (ص102)."},
+    {parts:["من فوائد التبادل التجاري أن ","نبيع للدول الأخرى الأجهزة الإلكترونية والسيارات","."], wrong:1,
+     fixes:["نتوقف عن الشراء من الدول الأخرى","نقدّم الهدايا للدول الأخرى","نبيع إنتاجنا الوطني مثل النفط والتمور"], correct:2,
+     why:"من فوائد التبادل التجاري أن نبيع إنتاجنا الوطني مثل النفط ومشتقاته والتمور، ونستفيد من صناعات الدول الأخرى مثل الأجهزة الإلكترونية والسيارات (ص101)."}
+  ];
 
   var $ = function(id){return document.getElementById(id);};
   var state;
   function reset(){
-    state = {q:-1, attempts:0, resolved:false, selected:[], stamps:[], groups:[], stars:[0,0,0,0], starGiven:false};
+    state = {q:-1, attempts:0, resolved:false, selected:[], stamps:[], groups:[], stars:[0,0,0,0], starGiven:false, bonus:null};
   }
   reset();
 
@@ -420,7 +452,9 @@ input{font-family:inherit;font-size:inherit}
   }
 
   function show(id){
-    ["startScreen","qScreen","endScreen"].forEach(function(s){ $(s).classList.toggle("hidden", s!==id); });
+    ["startScreen","qScreen","bonusScreen","endScreen"].forEach(function(s){ $(s).classList.toggle("hidden", s!==id); });
+    $("bonusControls").classList.toggle("hidden", id!=="bonusScreen");
+    var sec = $(id); sec.parentNode.insertBefore($("feedback"), sec.nextSibling);
     $("qControls").classList.toggle("hidden", id!=="qScreen");
     if(id!=="qScreen") setFeedback("", "");
   }
@@ -451,7 +485,7 @@ input{font-family:inherit;font-size:inherit}
     });
     $("confirmBtn").hidden = !q.multi;
     $("nextBtn").hidden = true;
-    $("nextBtn").textContent = state.q === Q.length-1 ? "إلى نهاية الرحلة 🎉" : "المحطة التالية ⬅️";
+    $("nextBtn").textContent = state.q === Q.length-1 ? "إلى محطة البونص ⭐" : "المحطة التالية ⬅️";
     $("starsPick").classList.remove("show");
     setFeedback("", "");
     renderTrack();
@@ -532,8 +566,68 @@ input{font-family:inherit;font-size:inherit}
   function next(){
     if(!state.resolved) return;
     if(state.q < Q.length-1){ state.q++; loadQ(); }
-    else { state.q = Q.length; renderEnd(); }
+    else { state.q = Q.length; showBonus(Math.floor(Math.random()*BONUS.length)); }
   }
+
+  /* ---------- bonus station: find the mistake, then choose the correction ---------- */
+  var bz = null;
+  function showBonus(idx){
+    show("bonusScreen");
+    bz = {idx:idx, step:1, mistakes:0, done:false};
+    var b = BONUS[idx];
+    $("bonusStep").textContent = "في هذه العبارة خطأ واحد. المسي الجزء الخاطئ:";
+    var box = $("bonusSentence"); box.innerHTML = "";
+    b.parts.forEach(function(part, i){
+      if(!part.trim() || part.trim()===".") { box.appendChild(document.createTextNode(part)); return; }
+      var sg = document.createElement("button"); sg.type="button"; sg.className="seg"; sg.textContent = part; sg.dataset.i=i;
+      sg.addEventListener("click", function(){ tapSeg(i, sg); });
+      box.appendChild(sg);
+    });
+    $("bonusOpts").classList.add("hidden"); $("bonusOpts").innerHTML="";
+    $("bonusOther").disabled = false;
+    setFeedback("", "");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+  function tapSeg(i, sg){
+    if(!bz || bz.step!==1) return;
+    var b = BONUS[bz.idx];
+    if(i!==b.wrong){
+      bz.mistakes++; beep(false);
+      sg.classList.remove("shake"); void sg.offsetWidth; sg.classList.add("shake");
+      setFeedback("✘ حاولي مرة أخرى: هذا الجزء صحيح… ابحثي عن الكلمات التي تخالف كتابك.", "bad");
+      return;
+    }
+    beep(true);
+    sg.classList.add("picked-wrong");
+    bz.step = 2; $("bonusOther").disabled = true;
+    $("bonusStep").textContent = "أحسنتِ! وجدتِ الخطأ. اختاري التصحيح:";
+    setFeedback("", "");
+    var box = $("bonusOpts"); box.innerHTML = ""; box.classList.remove("hidden");
+    b.fixes.forEach(function(f, k){
+      var o = document.createElement("button"); o.type="button"; o.className="opt"; o.dataset.k=k;
+      o.innerHTML='<span class="letter">'+LETTERS[k]+'</span><span class="otext"></span><span class="mark"></span>';
+      o.querySelector(".otext").textContent = f;
+      o.addEventListener("click", function(){ pickFix(k, o); });
+      box.appendChild(o);
+    });
+  }
+  function pickFix(k, o){
+    if(!bz || bz.step!==2 || bz.done) return;
+    var b = BONUS[bz.idx];
+    if(k!==b.correct){
+      bz.mistakes++; bz.fixTries=(bz.fixTries||0)+1; beep(false);
+      o.classList.remove("shake"); void o.offsetWidth; o.classList.add("shake");
+      if(bz.fixTries<2){ setFeedback("✘ حاولي مرة أخرى: ارجعي إلى كتابك وابحثي عن الجملة الصحيحة.", "bad"); return; }
+    } else { beep(true); }
+    bz.done = true;
+    var seg = $("bonusSentence").querySelector('[data-i="'+b.wrong+'"]');
+    seg.textContent = b.fixes[b.correct]; seg.classList.remove("picked-wrong"); seg.classList.add("fixed");
+    Array.prototype.forEach.call($("bonusOpts").children, function(x){ x.disabled=true; if(+x.dataset.k===b.correct){ x.classList.add("right"); x.querySelector(".mark").textContent="✔"; } });
+    state.bonus = bz.mistakes===0 ? "gold" : "silver";
+    setFeedback((k===b.correct ? "✔ صحيح! " : "التصحيح: ")+b.why, "ok");
+  }
+  $("bonusOther").addEventListener("click", function(){ if(bz && bz.step===1) showBonus((bz.idx+1)%BONUS.length); });
+  $("bonusEnd").addEventListener("click", function(){ renderEnd(); window.scrollTo({top:0, behavior:"smooth"}); });
 
   function renderEnd(){
     show("endScreen");
@@ -541,9 +635,16 @@ input{font-family:inherit;font-size:inherit}
     state.stamps.forEach(function(s, i){
       var d = document.createElement("div");
       d.className = "stamp" + (s==="silver" ? " silver" : "");
-      d.innerHTML = icon(STATIONS[i+1].sym)+"<span>"+STATIONS[i+1].name+"</span>"+(s==="silver" ? "<span>فضي</span>" : "<span>⭐</span>");
+      d.innerHTML = icon(STATIONS[i+1].sym)+"<span>"+STATIONS[i+1].name+"</span>"+(s==="silver" ? "<span>فضي</span>" : "<span>⭐ ذهبي</span>");
       b.appendChild(d);
     });
+    var bb = $("bonusBook"); bb.innerHTML = "";
+    if(state.bonus){
+      var bdg = document.createElement("div");
+      bdg.className = "stamp bonus" + (state.bonus==="silver" ? " silver" : "");
+      bdg.innerHTML = "<span style=\"font-size:2em\">🕵️‍♀️</span><span>محطة البونص</span><span>"+(state.bonus==="silver" ? "فضي" : "⭐ ذهبي")+"</span>";
+      bb.appendChild(bdg);
+    }
     var bd = $("board"); bd.innerHTML = "";
     state.groups.map(function(g,i){ return {g:g, s:state.stars[i]}; })
       .sort(function(a,b){ return b.s-a.s; })
@@ -565,9 +666,9 @@ input{font-family:inherit;font-size:inherit}
     state.q = 0; show("qScreen"); loadQ();
   });
   $("confirmBtn").addEventListener("click", function(){ judge(state.selected.slice()); });
-  $("nextBtn").addEventListener("click", next);
+  $("nextBtn").addEventListener("click", function(){ next(); window.scrollTo({top:0, behavior:"smooth"}); });
   $("againBtn").addEventListener("click", function(){
-    var g = state.groups; reset(); state.groups = g; show("startScreen"); renderTrack();
+    var g = state.groups; reset(); state.groups = g; show("startScreen"); renderTrack(); window.scrollTo({top:0, behavior:"smooth"});
   });
 
   /* teacher shortcuts: 1 2 3, Enter, N */
